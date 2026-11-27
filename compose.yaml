@@ -18,10 +18,18 @@ services:
     image: postgres:16-alpine
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_USER: ${POSTGRES_USER} # superuser: used ONLY by the one-time role bootstrap
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+      FINCORE_OWNER_PASSWORD: ${FINCORE_OWNER_PASSWORD}
+      FINCORE_API_PASSWORD: ${FINCORE_API_PASSWORD}
+      FINCORE_WORKERS_PASSWORD: ${FINCORE_WORKERS_PASSWORD}
+      FINCORE_ANALYTICS_PASSWORD: ${FINCORE_ANALYTICS_PASSWORD}
     volumes:
       - pgdata:/var/lib/postgresql/data
+      # roles.sql is mounted outside initdb.d (it needs psql variables); the .sh hook runs it once.
+      - ./db/bootstrap/10-init-roles.sh:/docker-entrypoint-initdb.d/10-init-roles.sh:ro
+      - ./db/bootstrap/roles.sql:/fincore/bootstrap/roles.sql:ro
     networks: [data]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
@@ -47,6 +55,22 @@ services:
     security_opt: ["no-new-privileges:true"]
     restart: unless-stopped
 
+  migrate: # One-shot: applies db/migrations as the schema owner, then exits.
+    image: ghcr.io/amacneil/dbmate:2.38.2
+    command: ["--wait", "--wait-timeout", "60s", "--no-dump-schema", "up"]
+    environment:
+      DATABASE_URL: postgres://fincore_owner:${FINCORE_OWNER_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable
+      DBMATE_MIGRATIONS_DIR: /db/migrations
+    volumes:
+      - ./db/migrations:/db/migrations:ro
+    networks: [data]
+    depends_on:
+      postgres: { condition: service_healthy }
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    restart: "no"
+
   mailpit: # Email SANDBOX: catches all outgoing mail; nothing is delivered.
     image: axllent/mailpit:latest
     networks: [data]
@@ -68,11 +92,12 @@ services:
       APP_ENV: ${APP_ENV}
       LOG_LEVEL: ${LOG_LEVEL}
       API_PORT: 4000
-      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      # Least-privilege runtime role (ADR-006), never the owner or superuser.
+      DATABASE_URL: postgres://fincore_api:${FINCORE_API_PASSWORD}@postgres:5432/${POSTGRES_DB}
       REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
     networks: [app, data]
     depends_on:
-      postgres: { condition: service_healthy }
+      migrate: { condition: service_completed_successfully }
       redis: { condition: service_healthy }
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4000/readyz"]
