@@ -3,6 +3,7 @@ import { defineConfig, devices } from "@playwright/test";
 /** E2E against the real stack (e2e/stack.ts) + `next start`. Run `pnpm build` first. */
 export default defineConfig({
   testDir: "e2e",
+  testIgnore: /demo.spec.ts/, // the recorded walkthrough runs via playwright.demo.config.ts
   timeout: 90_000,
   expect: { timeout: 15_000 },
   fullyParallel: false,
