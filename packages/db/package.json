@@ -1,0 +1,48 @@
+{
+  "name": "@fincore/db",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./testing": {
+      "types": "./dist/testing.d.ts",
+      "default": "./dist/testing.js"
+    },
+    "./seed": {
+      "types": "./dist/seed.d.ts",
+      "default": "./dist/seed.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "lint": "eslint src test",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "db:local": "tsx src/cli/local-db.ts --seed",
+    "codegen": "tsx src/cli/codegen.ts",
+    "codegen:verify": "tsx src/cli/codegen.ts --verify"
+  },
+  "dependencies": {
+    "@node-rs/argon2": "^2.2.2",
+    "kysely": "^0.29.9",
+    "pg": "^8.23.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.7",
+    "@types/pg": "^8.23.1",
+    "dbmate": "^2.38.2",
+    "embedded-postgres": "16.16.0-beta.19",
+    "kysely-codegen": "^0.20.0",
+    "tsx": "^4.23.15",
+    "vitest": "^5.1.2"
+  }
+}

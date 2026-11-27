@@ -23,6 +23,7 @@ export default tseslint.config(
       "**/node_modules/**",
       "services/**",
       "**/next-env.d.ts",
+      "**/generated/**",
     ],
   },
   js.configs.recommended,
@@ -33,6 +34,11 @@ export default tseslint.config(
       "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
       "no-console": "error",
     },
+  },
+  {
+    // In tests a missing row should fail loudly at the assertion; `rows[0]!` is acceptable there.
+    files: ["**/test/**/*.ts"],
+    rules: { "@typescript-eslint/no-non-null-assertion": "off" },
   },
   {
     files: MONEY_PATHS,

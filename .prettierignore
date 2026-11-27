@@ -5,3 +5,5 @@ pnpm-lock.yaml
 services/analytics
 evidence
 CHANGELOG.md
+**/generated
+.local

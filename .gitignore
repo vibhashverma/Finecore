@@ -32,6 +32,9 @@ infra/compose/secrets/*
 *.pem
 *.key
 
+# local embedded postgres data (pnpm db:local)
+.local/
+
 # os / editors
 .DS_Store
 Thumbs.db
