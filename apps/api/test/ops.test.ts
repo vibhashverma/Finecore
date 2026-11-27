@@ -230,8 +230,8 @@ describe("API contract (OpenAPI ↔ implementation)", () => {
   it("every documented operation is routed, and unauthenticated calls get the error envelope (never a generic 404)", async () => {
     for (const op of OPERATIONS) {
       const path = `/api/v1${op.path.replace("{id}", randomUUID())}`;
-      const res = await request(h.app)
-        [op.method](path)
+      const client = request(h.app);
+      const res = await client[op.method](path)
         .set("content-type", "application/json")
         .send(op.method === "get" ? undefined : "{}");
       expect(
