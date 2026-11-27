@@ -1,0 +1,36 @@
+FinCore capstone - 2026-11-27T17:18:30.242Z - SIMULATED funds only
+== 1. Concurrent transfers on the same wallet ==
+  start balance 5000000 minor; responses by HTTP status: {"201":33,"409":9,"422":8}
+  end balance 45050 minor; POSTED transfers 33 (each 150000 + fee 150)
+  PASS  no overdraft
+  PASS  debited exactly posted × (amount + fee)
+  PASS  10 retries with one Idempotency-Key produced 1 transfer
+
+== 2. Duplicate payment webhooks ==
+  event payment.processing: delivered 5× → IGNORED
+  event payment.succeeded: delivered 5× → PROCESSED
+  PASS  wallet credited exactly once (₹1,000.00) despite 5 deliveries per event
+
+== 3. Failed settlement ==
+  settlement FAILED, expected 100000; suspense balance 100000; alerts [{"kind":"SETTLEMENT_FAILED","status":"NEW"}]
+  PASS  failed payout moved to suspense and raised an alert
+  PASS  finance recovered the settlement (FAILED → RESOLVED, suspense cleared)
+
+== 4. Reversal ==
+  first reversal 200 REVERSED; second 409 INVALID_STATE_TRANSITION
+  PASS  reversal restored amount + fee to the sender
+  PASS  double reversal refused (409 INVALID_STATE_TRANSITION)
+
+== PROOF: ledger invariants ==
+  INR: debits=13905100 credits=13905100 journals=40
+  USD: debits=100000 credits=100000 journals=1
+  PASS  ledger_invariant_violations() returned 0 rows (balanced journals, global balance, cached balances, holds, reversals, audit chain)
+  PASS  Σ debits = Σ credits in every currency
+
+== PROOF: no account debited or credited twice for the same business event ==
+  PASS  each transfer has at most one TRANSFER journal (duplicates: 0)
+  PASS  each payment intent credited at most once (duplicates: 0)
+  PASS  each journal reversed at most once
+  PASS  no wallet below zero available balance
+
+RESULT: ALL CHECKS PASSED

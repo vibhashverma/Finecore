@@ -1,0 +1,38 @@
+FinCore incidents - 2026-11-27T17:20:56.274Z - SIMULATED funds only
+
+== INC-1 duplicate payment events ==  2026-11-27T17:21:17.755Z
+  [{"type":"payment.succeeded","deliveries":10,"status":"PROCESSED"},{"type":"payment.processing","deliveries":10,"status":"IGNORED"}]
+  PASS  10 deliveries per event, out of order → exactly one credit
+
+== INC-2 mismatched provider settlement ==  2026-11-27T17:21:18.184Z
+  settlement MISMATCHED expected 25000 actual 24000; items [{"outcome":"AMOUNT_MISMATCH","diff_minor":"1000"}]
+  PASS  short payout detected by reconciliation, difference parked in suspense, alert raised
+
+== INC-3 unbalanced ledger attempt ==  2026-11-27T17:21:18.275Z
+  database refused: FC002 transaction 9699a66b-eb07-4043-bd82-8652490cbfb2 has 1 ledger entries; at least 2 are required
+  PASS  deferred balance check rejected the unbalanced journal at COMMIT (nothing persisted)
+
+== INC-5 suspicious activity alert ==  2026-11-27T17:21:18.280Z
+  burst of 6 transfers then a 60x spike → 202 PENDING score 85 reasons ["VELOCITY_HIGH","AMOUNT_SPIKE","NEW_BENEFICIARY","NEW_ACCOUNT"]
+  PASS  high-risk transfer held for review (funds on hold, not posted)
+  analyst escalated → transfer FAILED
+  PASS  escalation failed the transfer and released the hold (a human decides; the score is support only)
+
+== INC-4 latency spike / analytics outage ==  2026-11-27T17:21:18.782Z
+  baseline latency ms {"p50":"40","p95":"51"}
+  analytics down → 503 UPSTREAM_UNAVAILABLE (fee cannot be quoted: fail closed, key released)
+  PASS  transfers fail safely (503 UPSTREAM_UNAVAILABLE) instead of guessing fees; circuit breaker opens
+
+== PROOF: ledger invariants ==
+  INR: debits=8578600 credits=8578600 journals=31
+  USD: debits=100000 credits=100000 journals=1
+  PASS  ledger_invariant_violations() returned 0 rows (balanced journals, global balance, cached balances, holds, reversals, audit chain)
+  PASS  Σ debits = Σ credits in every currency
+
+== PROOF: no account debited or credited twice for the same business event ==
+  PASS  each transfer has at most one TRANSFER journal (duplicates: 0)
+  PASS  each payment intent credited at most once (duplicates: 0)
+  PASS  each journal reversed at most once
+  PASS  no wallet below zero available balance
+
+RESULT: ALL CHECKS PASSED

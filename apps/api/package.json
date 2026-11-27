@@ -10,7 +10,8 @@
     "start": "node dist/server.js",
     "lint": "eslint src test",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run --coverage"
+    "test": "vitest run --coverage",
+    "scenario": "tsx scripts/scenarios.ts"
   },
   "dependencies": {
     "@fincore/contracts": "workspace:*",
