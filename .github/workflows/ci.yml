@@ -35,11 +35,19 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Lint commit messages in this PR
         run: pnpm exec commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }} --verbose
+      - name: Applied migrations are immutable (only new files may be added)
+        run: |
+          changed=$(git diff --name-status ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} -- db/migrations | grep -v '^A' || true)
+          if [ -n "$changed" ]; then
+            echo "::error::Existing migrations were modified or deleted. Add a new migration instead:"
+            echo "$changed"
+            exit 1
+          fi
 
   node:
     name: node (lint, typecheck, test, build)
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -49,7 +57,10 @@ jobs:
       - run: pnpm format:check
       - run: pnpm lint
       - run: pnpm typecheck
+      # Includes the DB suite on a real embedded PostgreSQL 16 (ADR-005), run as the least-privilege app role.
       - run: pnpm test
+      - name: Kysely types match the migrated schema (no drift)
+        run: pnpm --filter @fincore/db codegen:verify
       - run: pnpm build
       - name: Upload API coverage
         if: always()
@@ -130,6 +141,11 @@ jobs:
           # postgres and redis must publish no host ports in the base stack
           test -z "$(docker compose port postgres 5432 2>/dev/null || true)"
           test -z "$(docker compose port redis 6379 2>/dev/null || true)"
+      - name: Migrations applied and ledger invariants hold (as the app role)
+        run: |
+          set -euo pipefail
+          docker compose logs migrate | grep -E "Applied:|Error"
+          docker compose exec -T postgres psql -v ON_ERROR_STOP=1 -U fincore_api -d fincore -f - < scripts/invariant-check.sql
       - name: Graceful shutdown drains (SIGTERM → exit 0)
         run: |
           docker compose stop -t 30 api workers
