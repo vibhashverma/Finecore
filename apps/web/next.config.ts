@@ -9,6 +9,15 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
   transpilePackages: ["@fincore/contracts"],
+  // Same-origin API in dev/standalone; behind Caddy, /api is routed to Express before reaching Next.js.
+  async rewrites() {
+    return [
+      {
+        source: "/api/:path*",
+        destination: `${process.env.API_INTERNAL_URL ?? "http://127.0.0.1:4000"}/api/:path*`,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

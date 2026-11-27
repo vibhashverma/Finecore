@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { Providers } from "@/components/session";
 import { SimulatedBanner } from "@/components/simulated-banner";
 import "./globals.css";
 
@@ -19,7 +20,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           Skip to main content
         </a>
         <SimulatedBanner />
-        {children}
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

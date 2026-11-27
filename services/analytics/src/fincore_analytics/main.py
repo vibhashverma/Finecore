@@ -8,6 +8,7 @@ from contextlib import asynccontextmanager
 from typing import cast
 
 from fastapi import FastAPI
+from starlette.concurrency import run_in_threadpool
 
 from .api import ReportRows
 from .app import ReadinessCheck, create_app
@@ -21,24 +22,29 @@ checks: dict[str, ReadinessCheck] = {}
 report_rows: ReportRows | None = None
 
 if settings.database_url:
+    # Sync pool used from a worker thread: portable (async psycopg can't use Windows' Proactor event loop).
     from psycopg.rows import dict_row
-    from psycopg_pool import AsyncConnectionPool
+    from psycopg_pool import ConnectionPool
 
-    pool = AsyncConnectionPool(
-        settings.database_url, min_size=1, max_size=4, open=False, kwargs={"row_factory": dict_row}
-    )
+    pool = ConnectionPool(settings.database_url, min_size=1, max_size=4, open=False, kwargs={"row_factory": dict_row})
 
-    async def _db_check() -> None:
-        async with pool.connection() as conn:
-            await conn.execute("SELECT 1")
+    def _ping() -> None:
+        with pool.connection() as conn:
+            conn.execute("SELECT 1")
 
-    async def _rows() -> list[dict[str, object]]:
-        async with pool.connection() as conn:
-            cur = await conn.execute(
+    def _fetch() -> list[dict[str, object]]:
+        with pool.connection() as conn:
+            cur = conn.execute(
                 "SELECT status, currency, amount_minor, risk_score FROM analytics.transfer_facts "
                 "WHERE created_at > now() - interval '30 days'"
             )
-            return cast(list[dict[str, object]], await cur.fetchall())
+            return cast(list[dict[str, object]], cur.fetchall())
+
+    async def _db_check() -> None:
+        await run_in_threadpool(_ping)
+
+    async def _rows() -> list[dict[str, object]]:
+        return await run_in_threadpool(_fetch)
 
     checks["postgres"] = _db_check
     report_rows = _rows
@@ -50,11 +56,11 @@ if settings.database_url:
 
     @asynccontextmanager
     async def _lifespan(a: FastAPI) -> AsyncIterator[None]:
-        await pool.open()
+        pool.open()
         try:
             async with _inner(a):
                 yield
         finally:
-            await pool.close()
+            pool.close()
 
     app.router.lifespan_context = _lifespan
