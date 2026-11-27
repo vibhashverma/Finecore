@@ -17,6 +17,9 @@ coverage/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+.coverage
+.coverage.*
+pytest-report.xml
 playwright-report/
 test-results/
 
