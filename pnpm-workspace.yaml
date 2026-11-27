@@ -8,3 +8,10 @@ onlyBuiltDependencies:
   - sharp
   - "@tailwindcss/oxide"
   - unrs-resolver
+  # Real PostgreSQL 16 binaries for DB tests (ADR-005). Their install script recreates the shared-library
+  # symlinks that npm tarballs can't carry; without it, Linux CI fails with "Missing symlink native/lib/…".
+  - "@embedded-postgres/linux-x64"
+  - "@embedded-postgres/linux-arm64"
+  - "@embedded-postgres/darwin-x64"
+  - "@embedded-postgres/darwin-arm64"
+  - "@embedded-postgres/windows-x64"

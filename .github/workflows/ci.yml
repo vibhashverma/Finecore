@@ -105,7 +105,9 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - name: Python dependencies
         working-directory: services/analytics
-        run: uv export --frozen --no-dev --format requirements-txt > req.txt && uvx pip-audit -r req.txt --strict
+        # Dependencies only (the project itself is an editable install and can't be hashed); audit the pinned,
+        # hashed list without installing anything.
+        run: uv export --frozen --no-dev --no-emit-project --format requirements-txt > req.txt && uvx pip-audit -r req.txt --strict --disable-pip
 
   e2e:
     name: e2e (playwright + axe, real stack)
