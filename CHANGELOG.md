@@ -4,6 +4,27 @@ All notable changes are documented here. Format: [Keep a Changelog](https://keep
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-27
+
+### Added
+
+- Double-entry ledger schema (10 dbmate migrations): currencies, roles, users, customers, accounts, account balances, wallets, transactions, ledger entries, holds, settlements, state history, hash-chained audit log.
+- Integrity enforced in PostgreSQL:
+  - a deferred balanced-journal check;
+  - append-only triggers plus grants;
+  - a same-transaction line rule;
+  - exact-mirror single reversals;
+  - an overdraft CHECK on trigger-maintained balances;
+  - DB-enforced state machines with automatic history;
+  - a tamper-evident audit chain.
+- Least-privilege role bootstrap (owner, app, analytics read-only) and column-level grants.
+- `ledger_invariant_violations()`, `scripts/invariant-check.sql`, `scripts/ledger-proof.sql`.
+- `@fincore/db`: bigint-safe pool, SQLSTATE catalog, embedded PostgreSQL 16 harness, idempotent synthetic seed, Kysely codegen with drift check, `db:local`.
+- 59 DB tests on real PostgreSQL 16, run as the app role, with a global invariant check after every test.
+- Compose: role bootstrap, `migrate` one-shot service; the API connects as `fincore_api`.
+- CI: migration immutability guard, codegen drift check, invariant check in the compose smoke test.
+- ADR-005 (embedded Postgres), ADR-006 (DB-enforced integrity), ADR-007 (DB state machines).
+
 ## [0.1.0] - 2026-11-27
 
 ### Added

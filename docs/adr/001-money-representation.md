@@ -30,7 +30,7 @@ Option A.
   - An ESLint rule (`no-restricted-syntax`) bans `parseFloat`, `Number(` and `toFixed` in `ledger/`, `transfers/`, `payments/` and `calculations/`.
   - The UI formats with `Intl.NumberFormat` from the bigint, splitting major and minor parts.
 - **Python:** convert at the boundary with `Decimal(minor).scaleb(-exponent)`.
-  - All arithmetic is `Decimal` under a module-level `localcontext(prec=34)`, with an explicit `quantize(Decimal(10) ** -exponent, rounding=…)` at documented points (ADR-009).
+  - All arithmetic is `Decimal` under a module-level `localcontext(prec=34)`, with an explicit `quantize(Decimal(10) ** -exponent, rounding=…)` at documented points (ADR-011).
   - Results go back as integer minor units.
   - Pydantic models reject `float` input with `strict=True`.
 - **FX:** out of scope. Each transaction is single-currency, enforced by a composite FK. Documented in LIMITATIONS.

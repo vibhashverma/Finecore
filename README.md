@@ -26,6 +26,15 @@ The architecture, ERD and data ownership are in [docs/PLAN.md](docs/PLAN.md). De
 
 On Windows, develop inside **WSL2** so shell scripts, `make` and file permissions match CI and the Linux server.
 
+## Quick start without Docker (database only)
+
+```bash
+pnpm install
+pnpm --filter @fincore/db db:local   # real PostgreSQL 16 on 127.0.0.1:54320: roles, migrations, synthetic seed
+```
+
+This runs the same role bootstrap and migrations as the Docker stack ([ADR-005](docs/adr/005-test-database-strategy.md)). Demo users and wallets are listed in [docs/assessments/03-ledger-database.md](docs/assessments/03-ledger-database.md#setup-and-demo-no-docker-needed).
+
 ## Quick start (full stack in Docker)
 
 ```bash
@@ -43,16 +52,17 @@ docker compose -f compose.yaml -f infra/compose/compose.dev.yaml up -d --build -
 
 ## Commands
 
-| Task              | make                         | Without make                                                                 |
-| ----------------- | ---------------------------- | ---------------------------------------------------------------------------- |
-| Install deps      | `make install`               | `pnpm install && (cd services/analytics && uv sync)`                         |
-| Start stack       | `make up`                    | `docker compose up -d --build --wait`                                        |
-| Stop stack        | `make down`                  | `docker compose down`                                                        |
-| Lint              | `make lint`                  | `pnpm lint && (cd services/analytics && uv run ruff check . && uv run mypy)` |
-| Typecheck         | `make typecheck`             | `pnpm typecheck`                                                             |
-| Test              | `make test`                  | `pnpm test && (cd services/analytics && uv run pytest)`                      |
-| Migrations / seed | `make migrate` / `make seed` | _(Phase 2)_                                                                  |
-| Capstone scenario | `make capstone`              | _(Phase 12)_                                                                 |
+| Task               | make             | Without make                                                                 |
+| ------------------ | ---------------- | ---------------------------------------------------------------------------- |
+| Install deps       | `make install`   | `pnpm install && (cd services/analytics && uv sync)`                         |
+| Start stack        | `make up`        | `docker compose up -d --build --wait`                                        |
+| Stop stack         | `make down`      | `docker compose down`                                                        |
+| Lint               | `make lint`      | `pnpm lint && (cd services/analytics && uv run ruff check . && uv run mypy)` |
+| Typecheck          | `make typecheck` | `pnpm typecheck`                                                             |
+| Test               | `make test`      | `pnpm test && (cd services/analytics && uv run pytest)`                      |
+| Local DB + seed    | `make db-local`  | `pnpm --filter @fincore/db db:local` (no Docker)                             |
+| DB types (codegen) | `make codegen`   | `pnpm --filter @fincore/db codegen`                                          |
+| Capstone scenario  | `make capstone`  | _(Phase 12)_                                                                 |
 
 ## Repository layout
 
@@ -62,7 +72,8 @@ apps/api            Express API (domain modules under src/modules)
 apps/workers        BullMQ workers
 services/analytics  FastAPI analytics (Decimal calculations, risk scoring)
 packages/contracts  Shared TypeScript contracts (error catalog, envelopes)
-db/                 SQL migrations and seed (Phase 2)
+packages/db         DB access helpers, embedded-Postgres harness, seed, generated types
+db/                 SQL migrations (dbmate) and role bootstrap
 infra/              Dockerfiles, compose overrides, Caddy, deploy, monitoring
 docs/               Plan, ADRs, per-assessment docs, runbooks, postmortems
 evidence/NN/        Captured evidence per assessment
@@ -77,5 +88,6 @@ Branch from `main`. Commits follow [Conventional Commits](https://www.convention
 | Phase | Scope                                                                                    | Status             |
 | ----- | ---------------------------------------------------------------------------------------- | ------------------ |
 | 0     | Plan, ERD, ADRs                                                                          | ✅ approved        |
-| 1     | Scaffold, tooling, Compose, CI, governance                                               | ✅ awaiting review |
-| 2+    | See [docs/PLAN.md §8](docs/PLAN.md#8-phase-map-the-briefs-section-12-with-exit-evidence) | ⏳                 |
+| 1     | Scaffold, tooling, Compose, CI, governance                                               | ✅ done            |
+| 2     | Ledger schema, invariants, migrations, seed (Assessment 03)                              | ✅ awaiting review |
+| 3+    | See [docs/PLAN.md §8](docs/PLAN.md#8-phase-map-the-briefs-section-12-with-exit-evidence) | ⏳                 |

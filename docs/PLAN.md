@@ -457,7 +457,7 @@ The recommended default was accepted for every open question:
 | 2   | Repo visibility                 | **Public** GitHub repo, so rulesets work on the free plan; there are no secrets in Git.                                                                                   |
 | 3   | Reviewers                       | Single maintainer. 0 required approvals, PRs and green checks mandatory, AI-assisted review recorded on money/migration PRs. See `docs/assessments/10-git-governance.md`. |
 | 4   | Payment provider and SMS        | Local **SIMULATED** provider (failure injection) **plus** a Stripe **test-mode** adapter; SMS is a **MOCK** adapter; email goes to Mailpit.                               |
-| 5   | Hosting                         | Single Linux VM running Compose and Caddy. Provider and domain are chosen before Phase 11 (ADR-011).                                                                      |
+| 5   | Hosting                         | Single Linux VM running Compose and Caddy. Provider and domain are chosen before Phase 11 (ADR-013).                                                                      |
 | 6   | Data access                     | Kysely, dbmate SQL migrations and kysely-codegen (ADR-002).                                                                                                               |
 | 7   | Risk check in the transfer path | Synchronous scoring with a 300 ms timeout and a circuit breaker. When analytics is down, small transfers proceed and transfers at or above the review threshold are held. |
 | 8   | Defaults                        | INR primary (USD and JPY seeded), pnpm and Turborepo, Tailwind (+ shadcn/ui from Phase 8), uv.                                                                            |
@@ -467,3 +467,15 @@ Tooling notes from Phase 1:
 - ESLint is pinned to v9, because `eslint-plugin-react` (via `eslint-config-next`) doesn't support v10 yet.
 - TypeScript is pinned to 5.9, because `typescript-eslint` supports `<6.1`.
 - Node 22 LTS everywhere, matching the dev machine.
+
+## 11. Phase 2 changes to the plan (2026-11-27)
+
+- **Testcontainers → embedded PostgreSQL 16** (ADR-005), because the user asked to proceed without Docker. Tests still run on real Postgres 16 with the production role model.
+- **State machines and their history moved into the database** (ADR-007). The app-side compare-and-set from ADR-003 stays as the first line of defense.
+- **Planned ADRs were renumbered** to make room for 005–007. See `docs/adr/README.md`.
+- Phase 2 implements the ledger core. These ERD tables arrive with their phases:
+  - Phase 3: sessions, refresh tokens, MFA challenges;
+  - Phase 4: transfers, reversals, idempotency keys, outbox, failed jobs;
+  - Phase 5: beneficiaries, statements;
+  - Phase 7: payment intents, refunds, disputes, provider events, reconciliation, risk alerts.
+- The ERD as implemented so far is in `docs/assessments/03-ledger-database.md`.

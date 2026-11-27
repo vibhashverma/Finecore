@@ -3,7 +3,7 @@ COMPOSE      ?= docker compose
 DEV_COMPOSE  := $(COMPOSE) -f compose.yaml -f infra/compose/compose.dev.yaml
 ANALYTICS    := services/analytics
 
-.PHONY: help install up up-dev down logs ps lint typecheck test fmt migrate seed capstone
+.PHONY: help install up up-dev down logs ps lint typecheck test fmt db-local codegen invariants capstone
 
 help: ## List targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-12s %s\n", $$1, $$2}'
@@ -45,11 +45,14 @@ fmt: ## Format everything
 	pnpm format
 	cd $(ANALYTICS) && uv run ruff format . && uv run ruff check --fix .
 
-migrate: ## Apply DB migrations (Phase 2)
-	@echo "Not implemented until Phase 2" && exit 1
+db-local: ## Local PostgreSQL 16 without Docker (migrated + seeded) on :54320
+	pnpm --filter @fincore/db db:local
 
-seed: ## Load synthetic seed data (Phase 2)
-	@echo "Not implemented until Phase 2" && exit 1
+codegen: ## Regenerate Kysely DB types from the migrations
+	pnpm --filter @fincore/db codegen
+
+invariants: ## Run the ledger invariant check against $$DATABASE_URL
+	psql "$$DATABASE_URL" -v ON_ERROR_STOP=1 -f scripts/invariant-check.sql
 
 capstone: ## Run the capstone scenario (Phase 12)
 	@echo "Not implemented until Phase 12" && exit 1
