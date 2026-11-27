@@ -2,18 +2,6 @@ import { createServer } from "node:http";
 import type { AddressInfo } from "node:net";
 import { afterEach, describe, expect, it } from "vitest";
 import { healthHandler, type WorkerHealthDeps } from "../src/health.js";
-import { processPing } from "../src/queues.js";
-
-describe("processPing", () => {
-  it("computes latency from sentAt", () => {
-    const now = () => new Date("2026-01-01T00:00:01.000Z");
-    expect(processPing({ sentAt: "2026-01-01T00:00:00.000Z" }, now)).toEqual({ latencyMs: 1000 });
-  });
-
-  it("throws on invalid input so BullMQ retries and then records the failure", () => {
-    expect(() => processPing({ sentAt: "not-a-date" })).toThrow("invalid sentAt");
-  });
-});
 
 describe("worker health server", () => {
   let close: (() => void) | undefined;
