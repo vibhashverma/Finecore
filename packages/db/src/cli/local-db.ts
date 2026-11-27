@@ -4,6 +4,7 @@
  * Credentials are LOCAL-DEV-ONLY placeholders (override with env), never used outside this machine.
  */
 import { join } from "node:path";
+import { LOCAL_DEV_MFA_KEY } from "../crypto.js";
 import { REPO_ROOT } from "../paths.js";
 import { seed } from "../seed.js";
 import { startFincoreDatabase } from "../testing.js";
@@ -25,7 +26,11 @@ async function main(): Promise<void> {
   process.stdout.write(db.migrateOutput);
 
   if (process.argv.includes("--seed")) {
-    const r = await seed(db.appUrl, env("SEED_DEMO_PASSWORD", "FinCore-Demo-2026!"));
+    const r = await seed(
+      db.appUrl,
+      env("SEED_DEMO_PASSWORD", "FinCore-Demo-2026!"),
+      env("MFA_ENC_KEY", LOCAL_DEV_MFA_KEY),
+    );
     process.stdout.write(`seed: ${JSON.stringify(r)}\n`);
   }
 

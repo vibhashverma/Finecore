@@ -49,7 +49,10 @@ describe("overdraft protection (database backstop)", () => {
     const failed = results.filter((r) => r.status === "rejected");
     expect(ok).toBe(10);
     expect(failed).toHaveLength(40);
-    for (const f of failed) expect(isOverdraft((f as PromiseRejectedResult).reason)).toBe(true);
+    for (const f of failed) {
+      const reason = (f as PromiseRejectedResult).reason as { code?: string; message?: string };
+      expect(isOverdraft(reason), `${reason.code}: ${reason.message}`).toBe(true);
+    }
     expect(await balanceOf(source.accountId)).toEqual({ posted: 0n, held: 0n });
     expect(await balanceOf(sink.accountId)).toEqual({ posted: 10_000n, held: 0n });
   });

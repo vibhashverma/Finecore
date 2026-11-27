@@ -1,5 +1,11 @@
 import { hash } from "@node-rs/argon2";
 import type pg from "pg";
+import {
+  DEMO_TOTP_SECRET,
+  encryptSecret,
+  LOCAL_DEV_MFA_KEY,
+  parseEncryptionKey,
+} from "./crypto.js";
 import { createPool, firstRow, withClientTransaction } from "./pool.js";
 
 /**
@@ -66,10 +72,11 @@ async function createUser(
   email: string,
   passwordHash: string,
   role: string,
+  mfaSecretEnc: Buffer,
 ): Promise<string | null> {
   const res = await c.query<{ id: string }>(
-    `INSERT INTO users (email, password_hash) VALUES ($1, $2) ON CONFLICT (email) DO NOTHING RETURNING id`,
-    [email, passwordHash],
+    `INSERT INTO users (email, password_hash, mfa_secret_enc) VALUES ($1, $2, $3) ON CONFLICT (email) DO NOTHING RETURNING id`,
+    [email, passwordHash, mfaSecretEnc],
   );
   const id = res.rows[0]?.id;
   if (!id) return null;
@@ -113,7 +120,12 @@ export async function openWallet(
   return { walletId, accountId, funded: true };
 }
 
-export async function seed(appUrl: string, demoPassword: string): Promise<SeedResult> {
+export async function seed(
+  appUrl: string,
+  demoPassword: string,
+  mfaKeyBase64: string = LOCAL_DEV_MFA_KEY,
+): Promise<SeedResult> {
+  const mfaKey = parseEncryptionKey(mfaKeyBase64);
   const pool = createPool(appUrl, { applicationName: "fincore-seed", max: 2 });
   const passwordHash = await hash(demoPassword, ARGON2_OPTIONS);
   const result: SeedResult = { usersCreated: 0, walletsCreated: 0, fundingTransactions: 0 };
@@ -122,7 +134,16 @@ export async function seed(appUrl: string, demoPassword: string): Promise<SeedRe
   try {
     for (const staff of SEED_STAFF) {
       await withClientTransaction(pool, async (c) => {
-        if (await createUser(c, staff.email, passwordHash, staff.role)) result.usersCreated++;
+        if (
+          await createUser(
+            c,
+            staff.email,
+            passwordHash,
+            staff.role,
+            encryptSecret(DEMO_TOTP_SECRET, mfaKey),
+          )
+        )
+          result.usersCreated++;
       });
     }
 
@@ -132,7 +153,13 @@ export async function seed(appUrl: string, demoPassword: string): Promise<SeedRe
         () => `FC${(1_000_000_000 + ++walletIndex).toString()}`,
       );
       await withClientTransaction(pool, async (c) => {
-        const userId = await createUser(c, customer.email, passwordHash, "CUSTOMER");
+        const userId = await createUser(
+          c,
+          customer.email,
+          passwordHash,
+          "CUSTOMER",
+          encryptSecret(DEMO_TOTP_SECRET, mfaKey),
+        );
         if (!userId) return; // already seeded
         result.usersCreated++;
         const cust = await c.query<{ id: string }>(

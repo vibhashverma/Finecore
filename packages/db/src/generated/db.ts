@@ -21,6 +21,8 @@ export type JsonPrimitive = boolean | number | string | null;
 
 export type JsonValue = JsonArray | JsonObject | JsonPrimitive;
 
+export type Numeric = ColumnType<string, number | string, number | string>;
+
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
 export interface AccountBalances {
@@ -44,6 +46,35 @@ export interface Accounts {
   type: string;
 }
 
+export interface AnalyticsAlertSummary {
+  alerts: ColumnType<bigint, bigint | string, bigint | string> | null;
+  avg_score: Numeric | null;
+  status: string | null;
+}
+
+export interface AnalyticsDailyVolume {
+  amount_minor: Numeric | null;
+  currency: string | null;
+  day: Timestamp | null;
+  fee_minor: Numeric | null;
+  status: string | null;
+  transfers: ColumnType<bigint, bigint | string, bigint | string> | null;
+}
+
+export interface AnalyticsTransferFacts {
+  amount_minor: ColumnType<bigint, bigint | string, bigint | string> | null;
+  beneficiary_created_at: Timestamp | null;
+  created_at: Timestamp | null;
+  currency: string | null;
+  customer_id: string | null;
+  dest_wallet_id: string | null;
+  fee_minor: ColumnType<bigint, bigint | string, bigint | string> | null;
+  id: string | null;
+  risk_score: Numeric | null;
+  source_wallet_id: string | null;
+  status: string | null;
+}
+
 export interface AuditLog {
   action: string;
   actor_id: string | null;
@@ -58,6 +89,15 @@ export interface AuditLog {
   request_id: string | null;
   resource_id: string | null;
   resource_type: string | null;
+}
+
+export interface Beneficiaries {
+  created_at: Generated<Timestamp>;
+  customer_id: string;
+  deleted_at: Timestamp | null;
+  id: Generated<string>;
+  nickname: string;
+  target_wallet_id: string;
 }
 
 export interface Currencies {
@@ -75,6 +115,48 @@ export interface Customers {
   user_id: string;
 }
 
+export interface Disputes {
+  amount_minor: ColumnType<bigint, bigint | string, bigint | string>;
+  created_at: Generated<Timestamp>;
+  currency: string;
+  customer_id: string;
+  hold_id: string | null;
+  id: Generated<string>;
+  payment_intent_id: string | null;
+  raised_by: string;
+  reason: string;
+  resolution_note: string | null;
+  resolved_by: string | null;
+  status: Generated<string>;
+  transaction_id: string | null;
+  transfer_id: string | null;
+  updated_at: Generated<Timestamp>;
+  version: Generated<ColumnType<bigint, bigint | string, bigint | string>>;
+}
+
+export interface FailedJobs {
+  attempts: number;
+  error: string;
+  failed_at: Generated<Timestamp>;
+  id: Generated<string>;
+  outbox_id: ColumnType<bigint, bigint | string, bigint | string>;
+  replayed_at: Timestamp | null;
+  replayed_by: string | null;
+  topic: string;
+}
+
+export interface FeeSchedules {
+  created_at: Generated<Timestamp>;
+  currency: string;
+  effective_from: Generated<Timestamp>;
+  flat_minor: Generated<ColumnType<bigint, bigint | string, bigint | string>>;
+  id: Generated<string>;
+  kind: string;
+  max_minor: ColumnType<bigint, bigint | string, bigint | string> | null;
+  min_minor: Generated<ColumnType<bigint, bigint | string, bigint | string>>;
+  rate_bps: Generated<number>;
+}
+
 export interface Holds {
   account_id: string;
   amount_minor: ColumnType<bigint, bigint | string, bigint | string>;
@@ -88,6 +170,19 @@ export interface Holds {
   status: Generated<string>;
 }
 
+export interface IdempotencyKeys {
+  created_at: Generated<Timestamp>;
+  expires_at: Generated<Timestamp>;
+  key: string;
+  locked_until: Timestamp;
+  request_hash: Buffer;
+  response_body: Json | null;
+  response_code: number | null;
+  route: string;
+  status: string;
+  user_id: string;
+}
+
 export interface LedgerEntries {
   account_id: string;
   amount_minor: ColumnType<bigint, bigint | string, bigint | string>;
@@ -98,9 +193,151 @@ export interface LedgerEntries {
   transaction_id: string;
 }
 
+export interface MfaChallenges {
+  attempts: Generated<number>;
+  consumed_at: Timestamp | null;
+  created_at: Generated<Timestamp>;
+  expires_at: Timestamp;
+  id: Generated<string>;
+  purpose: string;
+  user_id: string;
+}
+
+export interface Outbox {
+  attempts: Generated<number>;
+  created_at: Generated<Timestamp>;
+  dedupe_key: string | null;
+  id: Generated<ColumnType<bigint, bigint | string, bigint | string>>;
+  last_error: string | null;
+  next_attempt_at: Generated<Timestamp>;
+  payload: Json;
+  processed_at: Timestamp | null;
+  status: Generated<string>;
+  topic: string;
+}
+
+export interface PaymentIntents {
+  amount_minor: ColumnType<bigint, bigint | string, bigint | string>;
+  created_at: Generated<Timestamp>;
+  currency: string;
+  customer_id: string;
+  failure_code: string | null;
+  id: Generated<string>;
+  provider: string;
+  provider_ref: string | null;
+  refunded_minor: Generated<ColumnType<bigint, bigint | string, bigint | string>>;
+  status: Generated<string>;
+  transaction_id: string | null;
+  updated_at: Generated<Timestamp>;
+  wallet_id: string;
+}
+
+export interface ProviderEvents {
+  deliveries: Generated<number>;
+  error: string | null;
+  id: Generated<string>;
+  payload: Json;
+  processed_at: Timestamp | null;
+  provider: string;
+  provider_event_id: string;
+  received_at: Generated<Timestamp>;
+  status: Generated<string>;
+  type: string;
+}
+
+export interface ReconciliationItems {
+  actual_minor: Generated<ColumnType<bigint, bigint | string, bigint | string>>;
+  diff_minor: Generated<ColumnType<bigint, bigint | string, bigint | string>>;
+  expected_minor: Generated<ColumnType<bigint, bigint | string, bigint | string>>;
+  id: Generated<string>;
+  outcome: string;
+  payment_intent_id: string | null;
+  provider_ref: string;
+  run_id: string;
+}
+
+export interface ReconciliationRuns {
+  completed_at: Timestamp | null;
+  created_at: Generated<Timestamp>;
+  created_by: string | null;
+  id: Generated<string>;
+  settlement_id: string;
+  status: Generated<string>;
+  summary: Generated<Json>;
+}
+
+export interface RefreshTokens {
+  created_at: Generated<Timestamp>;
+  expires_at: Timestamp;
+  family_id: string;
+  id: Generated<string>;
+  revoked_at: Timestamp | null;
+  session_id: string;
+  token_hash: Buffer;
+  used_at: Timestamp | null;
+}
+
+export interface Refunds {
+  amount_minor: ColumnType<bigint, bigint | string, bigint | string>;
+  created_at: Generated<Timestamp>;
+  id: Generated<string>;
+  payment_intent_id: string;
+  provider_ref: string | null;
+  reason: string;
+  requested_by: string;
+  status: Generated<string>;
+  transaction_id: string | null;
+  updated_at: Generated<Timestamp>;
+}
+
+export interface Reversals {
+  created_at: Generated<Timestamp>;
+  id: Generated<string>;
+  reason: string;
+  requested_by: string;
+  transaction_id: string;
+  transfer_id: string;
+}
+
+export interface RiskAlerts {
+  assignee_id: string | null;
+  created_at: Generated<Timestamp>;
+  customer_id: string | null;
+  id: Generated<string>;
+  kind: Generated<string>;
+  reasons: Generated<Json>;
+  resolution_note: string | null;
+  score: Numeric;
+  settlement_id: string | null;
+  status: Generated<string>;
+  transfer_id: string | null;
+  updated_at: Generated<Timestamp>;
+  version: Generated<ColumnType<bigint, bigint | string, bigint | string>>;
+}
+
 export interface Roles {
   code: string;
   description: string;
+}
+
+export interface Sessions {
+  created_at: Generated<Timestamp>;
+  expires_at: Timestamp;
+  id: Generated<string>;
+  last_seen_at: Generated<Timestamp>;
+  mfa_verified_at: Timestamp | null;
+  reauth_at: Timestamp | null;
+  revoke_reason: string | null;
+  revoked_at: Timestamp | null;
+  user_agent: string | null;
+  user_id: string;
+}
+
+export interface SettlementLines {
+  amount_minor: ColumnType<bigint, bigint | string, bigint | string>;
+  id: Generated<string>;
+  provider_ref: string;
+  settlement_id: string;
 }
 
 export interface Settlements {
@@ -121,6 +358,19 @@ export interface StateMachineTransitions {
   entity_type: string;
   from_state: string | null;
   to_state: string;
+}
+
+export interface Statements {
+  closing_minor: ColumnType<bigint, bigint | string, bigint | string>;
+  entry_count: number;
+  generated_at: Generated<Timestamp>;
+  id: Generated<string>;
+  opening_minor: ColumnType<bigint, bigint | string, bigint | string>;
+  period_end: Timestamp;
+  period_start: Timestamp;
+  total_credits_minor: ColumnType<bigint, bigint | string, bigint | string>;
+  total_debits_minor: ColumnType<bigint, bigint | string, bigint | string>;
+  wallet_id: string;
 }
 
 export interface StateTransitions {
@@ -148,6 +398,27 @@ export interface Transactions {
   reverses_transaction_id: string | null;
 }
 
+export interface Transfers {
+  amount_minor: ColumnType<bigint, bigint | string, bigint | string>;
+  beneficiary_id: string;
+  created_at: Generated<Timestamp>;
+  currency: string;
+  customer_id: string;
+  description: string | null;
+  dest_wallet_id: string;
+  failure_code: string | null;
+  fee_minor: Generated<ColumnType<bigint, bigint | string, bigint | string>>;
+  hold_id: string | null;
+  id: Generated<string>;
+  risk_reasons: Generated<Json>;
+  risk_score: Numeric | null;
+  source_wallet_id: string;
+  status: Generated<string>;
+  transaction_id: string | null;
+  updated_at: Generated<Timestamp>;
+  version: Generated<ColumnType<bigint, bigint | string, bigint | string>>;
+}
+
 export interface UserRoles {
   granted_at: Generated<Timestamp>;
   granted_by: string | null;
@@ -158,7 +429,9 @@ export interface UserRoles {
 export interface Users {
   created_at: Generated<Timestamp>;
   email: string;
+  failed_login_count: Generated<number>;
   id: Generated<string>;
+  locked_until: Timestamp | null;
   mfa_secret_enc: Buffer | null;
   password_hash: string;
   status: Generated<string>;
@@ -180,16 +453,38 @@ export interface Wallets {
 export interface DB {
   account_balances: AccountBalances;
   accounts: Accounts;
+  "analytics.alert_summary": AnalyticsAlertSummary;
+  "analytics.daily_volume": AnalyticsDailyVolume;
+  "analytics.transfer_facts": AnalyticsTransferFacts;
   audit_log: AuditLog;
+  beneficiaries: Beneficiaries;
   currencies: Currencies;
   customers: Customers;
+  disputes: Disputes;
+  failed_jobs: FailedJobs;
+  fee_schedules: FeeSchedules;
   holds: Holds;
+  idempotency_keys: IdempotencyKeys;
   ledger_entries: LedgerEntries;
+  mfa_challenges: MfaChallenges;
+  outbox: Outbox;
+  payment_intents: PaymentIntents;
+  provider_events: ProviderEvents;
+  reconciliation_items: ReconciliationItems;
+  reconciliation_runs: ReconciliationRuns;
+  refresh_tokens: RefreshTokens;
+  refunds: Refunds;
+  reversals: Reversals;
+  risk_alerts: RiskAlerts;
   roles: Roles;
+  sessions: Sessions;
+  settlement_lines: SettlementLines;
   settlements: Settlements;
   state_machine_transitions: StateMachineTransitions;
   state_transitions: StateTransitions;
+  statements: Statements;
   transactions: Transactions;
+  transfers: Transfers;
   user_roles: UserRoles;
   users: Users;
   wallets: Wallets;

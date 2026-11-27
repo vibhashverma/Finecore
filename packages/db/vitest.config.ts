@@ -8,5 +8,8 @@ export default defineConfig({
     setupFiles: ["test/setup.ts"],
     testTimeout: 60_000,
     hookTimeout: 180_000,
+    // Files share one cluster; running them sequentially keeps lock/CPU contention from other files
+    // (second cluster, superuser DDL) out of the concurrency assertions.
+    fileParallelism: false,
   },
 });
