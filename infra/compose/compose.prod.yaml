@@ -1,26 +1,33 @@
-# Production-like override (staging and prod). Hardened further in Phases 10–11:
-# pinned image digests, Docker secrets, resource limits, no plain-HTTP site.
+# Production-like override (staging and prod): signed, versioned GHCR images (no local builds), automatic HTTPS,
+# resource limits, always-restart. Secrets come from /etc/fincore/<env>.env (root-only), never from git.
 services:
   api:
+    image: ${REGISTRY:?set REGISTRY, e.g. ghcr.io/<owner>/fincore}/api:${IMAGE_TAG:?set IMAGE_TAG}
     restart: always
-    deploy:
-      resources:
-        limits: { cpus: "1.0", memory: 512M }
+    deploy: { resources: { limits: { cpus: "1.0", memory: 512M } } }
   workers:
+    image: ${REGISTRY}/workers:${IMAGE_TAG}
     restart: always
-    deploy:
-      resources:
-        limits: { cpus: "1.0", memory: 512M }
+    deploy: { resources: { limits: { cpus: "1.0", memory: 512M } } }
   analytics:
+    image: ${REGISTRY}/analytics:${IMAGE_TAG}
     restart: always
-    deploy:
-      resources:
-        limits: { cpus: "0.5", memory: 384M }
+    deploy: { resources: { limits: { cpus: "0.5", memory: 384M } } }
   web:
+    image: ${REGISTRY}/web:${IMAGE_TAG}
     restart: always
-    deploy:
-      resources:
-        limits: { cpus: "1.0", memory: 512M }
+    deploy: { resources: { limits: { cpus: "1.0", memory: 512M } } }
+  caddy:
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:?set SITE_ADDRESS to the domain}
+      ACME_EMAIL: ${ACME_EMAIL:?set ACME_EMAIL}
+    volumes:
+      - ./infra/caddy/Caddyfile.prod:/etc/caddy/Caddyfile:ro
+      - caddydata:/data
+      - caddyconfig:/config
+    ports: !override
+      - "80:80"
+      - "443:443"
+    restart: always
   mailpit:
-    # Staging keeps the sandbox inbox; the UI is never published.
-    restart: always
+    restart: always # staging keeps the sandbox inbox; its UI is never published

@@ -1,0 +1,20 @@
+# Prometheus scrapes services on the internal network only (/metrics is blocked at Caddy).
+global:
+  scrape_interval: 30s
+  evaluation_interval: 30s
+rule_files: [alerts.yml]
+alerting:
+  alertmanagers:
+    - static_configs: [{ targets: ["alertmanager:9093"] }]
+scrape_configs:
+  - job_name: api
+    static_configs: [{ targets: ["api:4000"] }]
+  - job_name: analytics
+    static_configs: [{ targets: ["analytics:8000"] }]
+  - job_name: blackbox-https # external uptime check of the public site
+    metrics_path: /probe
+    params: { module: [http_2xx] }
+    static_configs: [{ targets: ["https://${SITE_ADDRESS}/"] }]
+    relabel_configs:
+      - { source_labels: [__address__], target_label: __param_target }
+      - { target_label: __address__, replacement: "blackbox:9115" }

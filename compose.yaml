@@ -3,6 +3,22 @@
 #   production-like:   docker compose -f compose.yaml -f infra/compose/compose.prod.yaml up
 name: fincore
 
+x-app-env: &app-env
+  APP_ENV: ${APP_ENV}
+  LOG_LEVEL: ${LOG_LEVEL}
+  REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
+  ANALYTICS_URL: http://analytics:8000
+  ANALYTICS_TOKEN: ${ANALYTICS_TOKEN}
+  MFA_ENC_KEY: ${MFA_ENC_KEY}
+  JWT_PRIVATE_KEY_PEM: ${JWT_PRIVATE_KEY_PEM:-}
+  JWT_PUBLIC_KEY_PEM: ${JWT_PUBLIC_KEY_PEM:-}
+  PAYMENT_PROVIDER: ${PAYMENT_PROVIDER:-SIMULATOR}
+  WEBHOOK_SECRET: ${WEBHOOK_SECRET}
+  WEBHOOK_TARGET_URL: http://api:4000/api/v1/webhooks/payments
+  STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+  STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+  SMTP_URL: smtp://mailpit:1025
+
 x-hardening: &hardening
   read_only: true
   tmpfs: ["/tmp"]
@@ -89,12 +105,10 @@ services:
       args: { APP: api }
     image: fincore/api:${IMAGE_TAG:-local}
     environment:
-      APP_ENV: ${APP_ENV}
-      LOG_LEVEL: ${LOG_LEVEL}
+      <<: *app-env
       API_PORT: 4000
       # Least-privilege runtime role (ADR-006), never the owner or superuser.
       DATABASE_URL: postgres://fincore_api:${FINCORE_API_PASSWORD}@postgres:5432/${POSTGRES_DB}
-      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
     networks: [app, data]
     depends_on:
       migrate: { condition: service_completed_successfully }
@@ -115,11 +129,12 @@ services:
       args: { APP: workers }
     image: fincore/workers:${IMAGE_TAG:-local}
     environment:
-      LOG_LEVEL: ${LOG_LEVEL}
+      <<: *app-env
       WORKER_HEALTH_PORT: 4100
-      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
+      DATABASE_URL: postgres://fincore_workers:${FINCORE_WORKERS_PASSWORD}@postgres:5432/${POSTGRES_DB}
     networks: [data, egress]
     depends_on:
+      migrate: { condition: service_completed_successfully }
       redis: { condition: service_healthy }
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4100/readyz"]
@@ -135,9 +150,14 @@ services:
       context: .
       dockerfile: infra/docker/analytics.Dockerfile
     image: fincore/analytics:${IMAGE_TAG:-local}
+    depends_on:
+      migrate: { condition: service_completed_successfully }
     environment:
       ANALYTICS_APP_ENV: ${APP_ENV}
       ANALYTICS_LOG_LEVEL: ${ANALYTICS_LOG_LEVEL}
+      ANALYTICS_TOKEN: ${ANALYTICS_TOKEN}
+      # Read-only role: analytics views only (ADR-006).
+      ANALYTICS_DATABASE_URL: postgresql://fincore_analytics:${FINCORE_ANALYTICS_PASSWORD}@postgres:5432/${POSTGRES_DB}
     networks: [app, data]
     healthcheck:
       test:

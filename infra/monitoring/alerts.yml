@@ -1,0 +1,38 @@
+groups:
+  - name: fincore
+    rules:
+      - alert: LedgerInvariantViolated
+        expr: fincore_ledger_invariant_violations > 0
+        for: 1m
+        labels: { severity: critical }
+        annotations:
+          { summary: "Ledger invariant violated — follow docs/runbooks/unbalanced-ledger.md" }
+      - alert: DeadLetteredJobs
+        expr: fincore_failed_jobs > 0
+        for: 5m
+        labels: { severity: warning }
+        annotations: { summary: "Jobs in failed_jobs — follow docs/runbooks/stuck-jobs.md" }
+      - alert: OutboxBacklog
+        expr: fincore_outbox_pending_jobs > 100
+        for: 10m
+        labels: { severity: warning }
+        annotations: { summary: "Job queue backlog — workers down or slow" }
+      - alert: ApiHighLatencyP95
+        expr: histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket[5m]))) > 1
+        for: 10m
+        labels: { severity: warning }
+        annotations: { summary: "API p95 > 1s — follow docs/runbooks/latency.md" }
+      - alert: ApiErrorRate
+        expr: sum(rate(http_errors_total[5m])) / sum(rate(http_request_duration_seconds_count[5m])) > 0.02
+        for: 5m
+        labels: { severity: critical }
+        annotations: { summary: "5xx rate above 2%" }
+      - alert: SiteDown
+        expr: probe_success{job="blackbox-https"} == 0
+        for: 2m
+        labels: { severity: critical }
+        annotations: { summary: "Public HTTPS endpoint failing (uptime check)" }
+      - alert: TlsCertExpiringSoon
+        expr: probe_ssl_earliest_cert_expiry - time() < 14 * 86400
+        labels: { severity: warning }
+        annotations: { summary: "TLS certificate expires in < 14 days" }
