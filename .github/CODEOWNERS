@@ -1,19 +1,23 @@
-# Changes to money-critical code require review from the owners below (Assessment 10).
-# Replace @fincore-owner with the real GitHub handles once the repository exists (see docs/assessments/10-git-governance.md).
+# Changes to money-critical code require review from these owners (Assessment 10).
+# Add more reviewers here as the team grows.
 
-*                                       @fincore-owner
+*                                                    @vibhashverma
 
-# Ledger, money movement and calculations
-/apps/api/src/modules/ledger/           @fincore-owner
-/apps/api/src/modules/transfers/        @fincore-owner
-/apps/api/src/modules/payments/         @fincore-owner
-/apps/api/src/modules/refunds/          @fincore-owner
-/services/analytics/src/fincore_analytics/calculations/  @fincore-owner
+# Ledger posting, money movement and calculations
+/apps/api/src/lib/db.ts                              @vibhashverma
+/apps/api/src/lib/idempotency.ts                     @vibhashverma
+/apps/api/src/modules/transfers.ts                   @vibhashverma
+/apps/api/src/modules/payments.ts                    @vibhashverma
+/apps/api/src/modules/disputes.ts                    @vibhashverma
+/apps/api/src/jobs/                                  @vibhashverma
+/services/analytics/src/fincore_analytics/calculations.py  @vibhashverma
+/services/analytics/src/fincore_analytics/money.py   @vibhashverma
 
 # Schema and data-integrity rules
-/db/migrations/                         @fincore-owner
+/db/                                                 @vibhashverma
+/packages/db/                                        @vibhashverma
 
 # Auth and security-sensitive config
-/apps/api/src/modules/auth/             @fincore-owner
-/infra/                                 @fincore-owner
-/.github/                               @fincore-owner
+/apps/api/src/auth/                                  @vibhashverma
+/infra/                                              @vibhashverma
+/.github/                                            @vibhashverma
