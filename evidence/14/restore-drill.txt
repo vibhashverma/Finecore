@@ -1,0 +1,23 @@
+# Encrypted backup + timed restore drill (local PostgreSQL 16 server, client tools 18.4, gpg AES256)
+# Attempt 1 (strict mode) failed: pg_restore 18 -> 'unrecognized configuration parameter transaction_timeout' on PG16. Fix: version guard + compat mode; the VM uses matching v16 tools.
+backup=<scratch>/backups/fincore-20261127T172334Z.dump.gpg bytes=32188 seconds=1 taken_at=20261127T172334Z
+== restore drill: 2026-11-27T17:23:35Z file=<scratch>/backups/fincore-20261127T172334Z.dump.gpg target_db=fincore_restore_drill_20261127172335
+checksum: OK
+WARNING: pg_restore 18 vs server 16 (PG_RESTORE_COMPAT=1)
+== verification on restored database
+== Ledger totals per currency (debits must equal credits) ==
+ currency | total_debits_minor | total_credits_minor | journals 
+----------+--------------------+---------------------+----------
+ INR      |            8500000 |             8500000 |        3
+ USD      |             100000 |              100000 |        1
+
+== Invariant violations (empty = healthy) ==
+ check_name | detail 
+------------+--------
+
+OK: all ledger invariants hold
+restored: entries|journals|debit_total|audit_rows = 8|4|8600000|4
+source:   entries|journals|debit_total|audit_rows = 8|4|8600000|4
+source comparison: IDENTICAL (no writes since backup)
+== RESULT: restore time (RTO measured) = 5.30s ; backup age at restore (RPO bound) = 8s
+scratch database dropped

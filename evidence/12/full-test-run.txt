@@ -1,0 +1,198 @@
+# FinCore full test run 2026-11-27T17:56:23Z (Windows 11, Node v22.23.3, embedded PostgreSQL 16.16)
+
+   • turbo 2.11.13
+   • Packages in scope: @fincore/api, @fincore/contracts, @fincore/db, @fincore/web, @fincore/workers
+   • Running test in 5 packages
+   • Remote caching disabled
+
+@fincore/contracts:test: cache bypass, force executing 6ef69469b1632c13
+@fincore/contracts:build: cache bypass, force executing 2b47077690404667
+@fincore/db:build: cache bypass, force executing 3a4fd76da3adc6d3
+@fincore/db:test: cache bypass, force executing f46a0454a6fa82d9
+@fincore/contracts:test: 
+@fincore/contracts:test: > @fincore/contracts@0.1.0 test C:\Users\hp\Desktop\FineCore\packages\contracts
+@fincore/contracts:test: > vitest run
+@fincore/contracts:test: 
+@fincore/contracts:build: 
+@fincore/contracts:build: > @fincore/contracts@0.1.0 build C:\Users\hp\Desktop\FineCore\packages\contracts
+@fincore/contracts:build: > tsc -p tsconfig.build.json
+@fincore/contracts:build: 
+@fincore/db:build: 
+@fincore/db:build: > @fincore/db@0.1.0 build C:\Users\hp\Desktop\FineCore\packages\db
+@fincore/db:build: > tsc -p tsconfig.build.json
+@fincore/db:build: 
+@fincore/db:test: 
+@fincore/db:test: > @fincore/db@0.1.0 test C:\Users\hp\Desktop\FineCore\packages\db
+@fincore/db:test: > vitest run
+@fincore/db:test: 
+@fincore/contracts:test: 
+@fincore/contracts:test:  RUN  v5.1.2 C:/Users/hp/Desktop/FineCore/packages/contracts
+@fincore/contracts:test: 
+@fincore/db:test: 
+@fincore/db:test:  RUN  v5.1.2 C:/Users/hp/Desktop/FineCore/packages/db
+@fincore/db:test: 
+@fincore/contracts:test:  ✓ test/errors.test.ts (3 tests) 29ms
+@fincore/contracts:test: 
+@fincore/contracts:test:  Test Files  1 passed (1)
+@fincore/contracts:test:       Tests  3 passed (3)
+@fincore/contracts:test:    Start at  23:26:30
+@fincore/contracts:test:    Duration  3.20s (import 72%, transform 22%, worker 3%, tests 3%)
+@fincore/contracts:test: 
+@fincore/api:test: cache bypass, force executing 2a0be442f43ff590
+@fincore/api:build: cache bypass, force executing 36af21251e16d5e6
+@fincore/web:test: cache bypass, force executing 91eefc48b1762739
+@fincore/api:test: 
+@fincore/api:test: > @fincore/api@0.1.0 test C:\Users\hp\Desktop\FineCore\apps\api
+@fincore/api:test: > vitest run --coverage
+@fincore/api:test: 
+@fincore/api:build: 
+@fincore/api:build: > @fincore/api@0.1.0 build C:\Users\hp\Desktop\FineCore\apps\api
+@fincore/api:build: > tsc -p tsconfig.build.json
+@fincore/api:build: 
+@fincore/web:test: 
+@fincore/web:test: > @fincore/web@0.1.0 test C:\Users\hp\Desktop\FineCore\apps\web
+@fincore/web:test: > vitest run
+@fincore/web:test: 
+@fincore/web:test: 
+@fincore/web:test:  RUN  v5.1.2 C:/Users/hp/Desktop/FineCore/apps/web
+@fincore/web:test: 
+@fincore/api:test: 
+@fincore/api:test:  RUN  v5.1.2 C:/Users/hp/Desktop/FineCore/apps/api
+@fincore/api:test:       Coverage enabled with v8
+@fincore/api:test: 
+@fincore/web:test:  ✓ src/lib/money.test.ts (2 tests) 174ms
+@fincore/web:test:  ✓ src/components/simulated-banner.test.tsx (1 test) 249ms
+@fincore/web:test: 
+@fincore/web:test:  Test Files  2 passed (2)
+@fincore/web:test:       Tests  3 passed (3)
+@fincore/web:test:    Start at  23:26:37
+@fincore/web:test:    Duration  12.73s (environment 87%, import 9%, tests 2%, transform 1%)
+@fincore/web:test: 
+@fincore/workers:test: cache bypass, force executing 108ffec9d2b3f429
+@fincore/workers:test: 
+@fincore/workers:test: > @fincore/workers@0.1.0 test C:\Users\hp\Desktop\FineCore\apps\workers
+@fincore/workers:test: > vitest run
+@fincore/workers:test: 
+@fincore/workers:test: 
+@fincore/workers:test:  RUN  v5.1.2 C:/Users/hp/Desktop/FineCore/apps/workers
+@fincore/workers:test: 
+@fincore/workers:test:  ✓ test/workers.test.ts (4 tests) 178ms
+@fincore/workers:test: 
+@fincore/workers:test:  Test Files  1 passed (1)
+@fincore/workers:test:       Tests  4 passed (4)
+@fincore/workers:test:    Start at  23:26:58
+@fincore/workers:test:    Duration  1.01s (tests 41%, transform 27%, import 27%, worker 5%)
+@fincore/workers:test: 
+@fincore/api:test:  ✓ test/transfers.test.ts (18 tests) 10870ms
+@fincore/api:test:    ✓ transfers: success and validation (6)
+@fincore/api:test:      ✓ posts a transfer with a Decimal fee, balanced entries and correct balances 704ms
+@fincore/api:test:    ✓ idempotency (4)
+@fincore/api:test:      ✓ 10 concurrent requests with the same key → one transfer; the rest replay or get 409 795ms
+@fincore/api:test:    ✓ concurrency (ADR-003) (2)
+@fincore/api:test:      ✓ 50 concurrent transfers from one wallet: no overdraft, total debited ≤ starting balance 2440ms
+@fincore/api:test:      ✓ opposing concurrent transfers A↔B: no deadlock, both sides consistent 2597ms
+@fincore/api:test:    ✓ risk review and fail-safe (3)
+@fincore/api:test:      ✓ high score → 202 PENDING with a hold; ops CLEARED → POSTED 419ms
+@fincore/api:test:      ✓ ESCALATED → transfer FAILED and the hold released 362ms
+@fincore/api:test:    ✓ reversals (3)
+@fincore/api:test:      ✓ finance reverses a posted transfer: new mirrored journal, original untouched, balances restored 445ms
+@fincore/api:test:      ✓ double reversal → 409 INVALID_STATE_TRANSITION 447ms
+@fincore/api:test:      ✓ reversal without fresh reauth → 401 REAUTH_REQUIRED 339ms
+@fincore/db:test:  ✓ test/migrations-and-invariants.test.ts (4 tests) 28832ms
+@fincore/db:test:    ✓ migrations (2)
+@fincore/db:test:      ✓ every migration rolls back cleanly and re-applies (down sections are real) 28536ms
+@fincore/api:test:  ✓ test/payments.test.ts (16 tests) 5318ms
+@fincore/api:test:    ✓ payment intents and webhooks (7)
+@fincore/api:test:      ✓ top-up: confirm → signed webhooks → wallet credited exactly once 803ms
+@fincore/api:test:    ✓ refunds (2)
+@fincore/api:test:      ✓ finance refunds part of a top-up: hold now, money moves when the provider confirms 516ms
+@fincore/api:test:    ✓ settlements and reconciliation (4)
+@fincore/api:test:      ✓ matched payout: clearing moves to the bank, settlement MATCHED 528ms
+@fincore/api:test:      ✓ short payout: MISMATCHED, difference to suspense, alert raised 398ms
+@fincore/api:test:      ✓ failed settlement: suspense + alert, then finance recovers it (RESOLVED) 506ms
+@fincore/api:test:    ✓ jobs: retries, crash recovery and dead letters (3)
+@fincore/api:test:      ✓ after 5 failures a job is dead-lettered; admin replays it once 445ms
+@fincore/db:test:  ✓ test/state-and-audit.test.ts (10 tests) 2511ms
+@fincore/db:test:    ✓ hash-chained audit log (4)
+@fincore/db:test:      ✓ stays gap-free and valid under 30 concurrent writers 1073ms
+@fincore/db:test:  ✓ test/balances-holds.test.ts (11 tests) 2418ms
+@fincore/db:test:    ✓ overdraft protection (database backstop) (5)
+@fincore/db:test:      ✓ 50 concurrent naive debits never overdraw: exactly floor(balance/amount) succeed 1469ms
+@fincore/db:test:  ✓ test/roles-and-constraints.test.ts (9 tests) 2142ms
+@fincore/db:test:    ✓ credentials (2)
+@fincore/db:test:      ✓ rejects anything that is not an Argon2id hash (no plaintext passwords) 305ms
+@fincore/db:test:    ✓ chart of accounts (4)
+@fincore/db:test:      ✓ accounts are immutable (no privilege for the app, a trigger for the owner) 384ms
+@fincore/db:test:    ✓ least-privilege roles (3)
+@fincore/db:test:      ✓ the app role cannot create objects or read the migrations table 511ms
+@fincore/db:test:      ✓ the analytics role cannot see or read core tables and is read-only by default 462ms
+@fincore/api:test:  ✓ test/ops.test.ts (11 tests) 4300ms
+@fincore/api:test:    ✓ disputes (3)
+@fincore/api:test:      ✓ customer disputes own transfer (funds held at recipient); finance resolves in customer's favour 1033ms
+@fincore/api:test:      ✓ cannot dispute someone else's transfer (404); illegal transition → 409 467ms
+@fincore/api:test:      ✓ support can't resolve above the support limit; finance can 367ms
+@fincore/api:test:    ✓ statements (3)
+@fincore/api:test:      ✓ generates a statement whose totals reconcile, exports CSV and PDF; other customers get 404 545ms
+@fincore/api:test:    ✓ operations, audit and admin (3)
+@fincore/api:test:      ✓ audit log: readable by ops (chain intact), forbidden to customers 348ms
+@fincore/api:test:      ✓ admin grants a role (with step-up); change is effective on the next request 409ms
+@fincore/api:test:    ✓ API contract (OpenAPI ↔ implementation) (2)
+@fincore/api:test:      ✓ every documented operation is routed, and unauthenticated calls get the error envelope (never a generic 404) 542ms
+@fincore/db:test:  ✓ test/ledger.test.ts (14 tests) 1458ms
+@fincore/db:test:    ✓ append-only ledger (3)
+@fincore/db:test:      ✓ the app role has no privilege to UPDATE or DELETE ledger entries or journals 409ms
+@fincore/db:test:      ✓ even the schema owner cannot UPDATE, DELETE or TRUNCATE ledger tables (trigger) 527ms
+@fincore/db:test:  ✓ test/seed-and-bootstrap.test.ts (4 tests) 626ms
+@fincore/db:test:    ✓ seed (1)
+@fincore/db:test:      ✓ creates synthetic users and funded wallets once, and is idempotent 595ms
+@fincore/db:test:  ✓ test/reversals.test.ts (7 tests) 546ms
+@fincore/db:test: 
+@fincore/db:test:  Test Files  7 passed (7)
+@fincore/db:test:       Tests  59 passed (59)
+@fincore/db:test:    Start at  23:26:30
+@fincore/db:test:    Duration  72.18s (tests 94%, setup 4%, transform 1%)
+@fincore/db:test: 
+@fincore/api:test:  ✓ test/auth.test.ts (17 tests) 2977ms
+@fincore/api:test:    ✓ registration and login (6)
+@fincore/api:test:      ✓ register → login → MFA → session, and the password is stored only as Argon2id 476ms
+@fincore/api:test:      ✓ locks the account after 5 failed passwords (even the right password is refused while locked) 395ms
+@fincore/api:test:      ✓ rate-limits login attempts per email (429 RATE_LIMITED with Retry-After) 655ms
+@fincore/api:test:  ✓ test/app.test.ts (10 tests) 750ms
+@fincore/api:test:  ✓ test/config.test.ts (3 tests) 26ms
+@fincore/api:test: 
+@fincore/api:test:  Test Files  6 passed (6)
+@fincore/api:test:       Tests  75 passed (75)
+@fincore/api:test:    Start at  23:26:39
+@fincore/api:test:    Duration  69.87s (tests 59%, import 37%, transform 3%, worker 1%)
+@fincore/api:test: 
+@fincore/api:test:  % Coverage report from v8
+@fincore/api:test: 
+@fincore/api:test: =============================== Coverage summary ===============================
+@fincore/api:test: Statements   : 75.57% ( 1284/1699 )
+@fincore/api:test: Branches     : 66.78% ( 569/852 )
+@fincore/api:test: Functions    : 74.62% ( 247/331 )
+@fincore/api:test: Lines        : 77.86% ( 1224/1572 )
+@fincore/api:test: ================================================================================
+
+ Tasks:    8 successful, 8 total
+Cached:    0 cached, 8 total
+  Time:    1m25.104s 
+
+
+## analytics
+
+Name                                    Stmts   Miss  Cover
+-----------------------------------------------------------
+src\fincore_analytics\__init__.py           0      0   100%
+src\fincore_analytics\api.py              118      3    97%
+src\fincore_analytics\app.py               72      0   100%
+src\fincore_analytics\calculations.py     102      2    98%
+src\fincore_analytics\config.py            15      1    93%
+src\fincore_analytics\logging.py            4      0   100%
+src\fincore_analytics\main.py              41     25    39%
+src\fincore_analytics\money.py             17      0   100%
+src\fincore_analytics\risk.py              45      1    98%
+src\fincore_analytics\synthetic.py         26      0   100%
+-----------------------------------------------------------
+TOTAL                                     440     32    93%
+58 passed, 1 warning in 8.99s

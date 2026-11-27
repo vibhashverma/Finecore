@@ -1,0 +1,111 @@
+newman
+
+FinCore API (SIMULATED funds)
+
+□ 00 Smoke (run with Newman)
+└ Login (password step)
+  POST http://127.0.0.1:4400/api/v1/auth/login [200 OK, 1.09kB, 79ms]
+  √  status 200
+  √  envelope + request id
+
+└ SIMULATED MFA code (dev/test only)
+  GET http://127.0.0.1:4400/api/v1/auth/mfa/dev-code?challenge_id=e3b1a960-93aa-45f8-8b4e-002a6238c5c8 [200 OK, 1.03kB, 8ms]
+  √  status 200
+  √  envelope + request id
+
+└ MFA verify → tokens
+  POST http://127.0.0.1:4400/api/v1/auth/mfa/verify [200 OK, 2.28kB, 22ms]
+  √  status 200
+  √  envelope + request id
+
+└ Session
+  GET http://127.0.0.1:4400/api/v1/auth/session [200 OK, 1.14kB, 10ms]
+  √  status 200
+  √  envelope + request id
+
+└ Me
+  GET http://127.0.0.1:4400/api/v1/me [200 OK, 1.22kB, 9ms]
+  √  status 200
+  √  envelope + request id
+
+└ Wallets
+  GET http://127.0.0.1:4400/api/v1/wallets [200 OK, 1.55kB, 13ms]
+  √  status 200
+  √  envelope + request id
+  √  balance is a string of minor units
+
+└ Wallet balance
+  GET http://127.0.0.1:4400/api/v1/wallets/1e5de75d-dc44-48c4-a2fb-b8a581ef7a67/balance [200 OK, 1.15kB, 11ms]
+  √  status 200
+  √  envelope + request id
+
+└ Wallet transactions
+  GET http://127.0.0.1:4400/api/v1/wallets/1e5de75d-dc44-48c4-a2fb-b8a581ef7a67/transactions?limit=5 [200 OK, 1.75kB, 12ms]
+  √  status 200
+  √  envelope + request id
+
+└ Create payment intent (SIMULATED)
+  POST http://127.0.0.1:4400/api/v1/payment-intents [201 Created, 1.47kB, 28ms]
+  √  status 201
+  √  envelope + request id
+
+└ Confirm payment (SIMULATED card)
+  POST http://127.0.0.1:4400/api/v1/payment-intents/89751923-efb6-4db5-9b49-71c0cba2dbef/confirm [202 Accepted, 1.46kB, 18ms]
+  √  status 202
+  √  envelope + request id
+
+└ Transfers list
+  GET http://127.0.0.1:4400/api/v1/transfers?limit=5 [200 OK, 1.02kB, 10ms]
+  √  status 200
+  √  envelope + request id
+
+└ Statement (current month)
+  GET http://127.0.0.1:4400/api/v1/statements?wallet_id=1e5de75d-dc44-48c4-a2fb-b8a581ef7a67&period=2026-11 [200 OK, 1.37kB, 20ms]
+  √  status 200
+  √  envelope + request id
+
+└ NEGATIVE: transfer without Idempotency-Key → 400
+  POST http://127.0.0.1:4400/api/v1/transfers [400 Bad Request, 1.17kB, 7ms]
+  √  status 400
+  √  envelope + request id
+  √  code
+
+└ NEGATIVE: float amount rejected → 400
+  POST http://127.0.0.1:4400/api/v1/payment-intents [400 Bad Request, 1.16kB, 10ms]
+  √  status 400
+  √  envelope + request id
+
+└ NEGATIVE: someone else's wallet → 404 (IDOR)
+  GET http://127.0.0.1:4400/api/v1/wallets/00000000-0000-4000-8000-000000000000 [404 Not Found, 1.05kB, 10ms]
+  √  status 404
+  √  envelope + request id
+
+└ NEGATIVE: finance-only endpoint → 403
+  POST http://127.0.0.1:4400/api/v1/transfers/00000000-0000-4000-8000-000000000000/reverse [403 Forbidden, 1.08kB, 10ms]
+  √  status 403
+  √  envelope + request id
+
+└ NEGATIVE: no token, no cookies → 401
+  GET http://localhost:4400/api/v1/me [401 Unauthorized, 1.06kB, 18ms]
+  √  status 401
+  √  envelope + request id
+
+┌─────────────────────────┬──────────────────┬──────────────────┐
+│                         │         executed │           failed │
+├─────────────────────────┼──────────────────┼──────────────────┤
+│              iterations │                1 │                0 │
+├─────────────────────────┼──────────────────┼──────────────────┤
+│                requests │               17 │                0 │
+├─────────────────────────┼──────────────────┼──────────────────┤
+│            test-scripts │               17 │                0 │
+├─────────────────────────┼──────────────────┼──────────────────┤
+│      prerequest-scripts │                0 │                0 │
+├─────────────────────────┼──────────────────┼──────────────────┤
+│              assertions │               36 │                0 │
+├─────────────────────────┴──────────────────┴──────────────────┤
+│ total run duration: 1519ms                                    │
+├───────────────────────────────────────────────────────────────┤
+│ total data received: 5.47kB (approx)                          │
+├───────────────────────────────────────────────────────────────┤
+│ average response time: 17ms [min: 7ms, max: 79ms, s.d.: 16ms] │
+└───────────────────────────────────────────────────────────────┘

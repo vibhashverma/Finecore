@@ -1,0 +1,2866 @@
+{
+  "info": {
+    "name": "FinCore API (SIMULATED funds)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Simulated digital wallet, double-entry ledger and payments API for an educational assessment. No real money.\n\nAmounts are strings of integer **minor units** (e.g. \"125050\" = ₹1,250.50). Errors use `{ error: { code, message, details, request_id } }`.\n\nError catalog: `VALIDATION_ERROR` 400 · `UNAUTHENTICATED` 401 · `REAUTH_REQUIRED` 401 · `FORBIDDEN` 403 · `NOT_FOUND` 404 · `CONFLICT` 409 · `INVALID_STATE_TRANSITION` 409 · `IDEMPOTENCY_KEY_REUSED` 422 · `INSUFFICIENT_FUNDS` 422 · `LIMIT_EXCEEDED` 422 · `RATE_LIMITED` 429 · `INTERNAL_ERROR` 500 · `UPSTREAM_UNAVAILABLE` 503"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:4400"
+    },
+    {
+      "key": "anon_base_url",
+      "value": "http://localhost:4400"
+    },
+    {
+      "key": "email",
+      "value": "alice@fincore.test"
+    },
+    {
+      "key": "password",
+      "value": "FinCore-Demo-2026!"
+    },
+    {
+      "key": "period",
+      "value": "2026-11"
+    }
+  ],
+  "item": [
+    {
+      "name": "00 Smoke (run with Newman)",
+      "item": [
+        {
+          "name": "Login (password step)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });",
+                  "pm.collectionVariables.set(\"challenge_id\", pm.response.json().data.challenge_id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "login"],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "SIMULATED MFA code (dev/test only)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });",
+                  "pm.collectionVariables.set(\"code\", pm.response.json().data.code);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/mfa/dev-code?challenge_id={{challenge_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "mfa", "dev-code"],
+              "query": [
+                {
+                  "key": "challenge_id",
+                  "value": "{{challenge_id}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "MFA verify → tokens",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });",
+                  "pm.collectionVariables.set(\"access_token\", pm.response.json().data.access_token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/mfa/verify",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "mfa", "verify"],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"challenge_id\": \"{{challenge_id}}\",\n  \"code\": \"{{code}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Session",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/session",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "session"],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Me",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "me"],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Wallets",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });",
+                  "const w = pm.response.json().data[0]; pm.collectionVariables.set(\"wallet_id\", w.id); pm.test(\"balance is a string of minor units\", () => pm.expect(w.balance.available_minor).to.match(/^\\d+$/));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/wallets",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "wallets"],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Wallet balance",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/wallets/{{wallet_id}}/balance",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "wallets", "{{wallet_id}}", "balance"],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Wallet transactions",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/wallets/{{wallet_id}}/transactions?limit=5",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "wallets", "{{wallet_id}}", "transactions"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "5"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create payment intent (SIMULATED)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });",
+                  "pm.collectionVariables.set(\"intent_id\", pm.response.json().data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              },
+              {
+                "key": "idempotency-key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/payment-intents",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "payment-intents"],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"wallet_id\": \"{{wallet_id}}\",\n  \"amount_minor\": \"10000\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Confirm payment (SIMULATED card)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 202\", () => pm.response.to.have.status(202));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              },
+              {
+                "key": "idempotency-key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/payment-intents/{{intent_id}}/confirm",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "payment-intents", "{{intent_id}}", "confirm"],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"payment_method\": \"pm_simulated_success\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Transfers list",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/transfers?limit=5",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "transfers"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "5"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Statement (current month)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/statements?wallet_id={{wallet_id}}&period={{period}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "statements"],
+              "query": [
+                {
+                  "key": "wallet_id",
+                  "value": "{{wallet_id}}"
+                },
+                {
+                  "key": "period",
+                  "value": "{{period}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "NEGATIVE: transfer without Idempotency-Key → 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });",
+                  "pm.test(\"code\", () => pm.expect(pm.response.json().error.code).to.eql(\"VALIDATION_ERROR\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/transfers",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "transfers"],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"source_wallet_id\": \"{{wallet_id}}\",\n  \"beneficiary_id\": \"00000000-0000-4000-8000-000000000000\",\n  \"amount_minor\": \"100\"\n}"
+            }
+          }
+        },
+        {
+          "name": "NEGATIVE: float amount rejected → 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              },
+              {
+                "key": "idempotency-key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/payment-intents",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "payment-intents"],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"wallet_id\": \"{{wallet_id}}\",\n  \"amount_minor\": 10.5\n}"
+            }
+          }
+        },
+        {
+          "name": "NEGATIVE: someone else's wallet → 404 (IDOR)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 404\", () => pm.response.to.have.status(404));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/wallets/00000000-0000-4000-8000-000000000000",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "wallets", "00000000-0000-4000-8000-000000000000"],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "NEGATIVE: finance-only endpoint → 403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 403\", () => pm.response.to.have.status(403));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              },
+              {
+                "key": "idempotency-key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/transfers/00000000-0000-4000-8000-000000000000/reverse",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "transfers", "00000000-0000-4000-8000-000000000000", "reverse"],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"not allowed\"\n}"
+            }
+          }
+        },
+        {
+          "name": "NEGATIVE: no token, no cookies → 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 401\", () => pm.response.to.have.status(401));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              }
+            ],
+            "url": {
+              "raw": "{{anon_base_url}}/api/v1/me",
+              "host": ["{{anon_base_url}}"],
+              "path": ["api", "v1", "me"],
+              "query": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register a customer (returns a SIMULATED MFA enrolment secret once)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "register"],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Password step; returns an MFA challenge",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "login"],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "TOTP step; issues session cookies (or tokens with X-Token-Delivery: body)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/mfa/verify",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "mfa", "verify"],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Rotate the refresh token (reuse revokes the whole family)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/refresh",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "refresh"],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Revoke the current session",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/logout",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "logout"],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Step-up: password + TOTP, valid 5 minutes for sensitive actions",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/reauth",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "reauth"],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Current principal",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/session",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "session"],
+              "query": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Customers",
+      "item": [
+        {
+          "name": "Own profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "me"],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Update own profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "me"],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Staff: list customers (masked PII)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/customers",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "customers"],
+              "query": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Wallets",
+      "item": [
+        {
+          "name": "Open a wallet (SIMULATED funds)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/wallets",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "wallets"],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "List own wallets (staff: ?customer_id, masked)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/wallets",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "wallets"],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Get a wallet",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/wallets/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "wallets", ":id"],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Posted, held and available balance",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/wallets/:id/balance",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "wallets", ":id", "balance"],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Ledger lines with transaction state (cursor = entry id)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/wallets/:id/transactions",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "wallets", ":id", "transactions"],
+              "query": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Beneficiaries",
+      "item": [
+        {
+          "name": "Add a beneficiary (step-up required)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/beneficiaries",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "beneficiaries"],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "List beneficiaries",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/beneficiaries",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "beneficiaries"],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Remove a beneficiary",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/beneficiaries/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "beneficiaries", ":id"],
+              "query": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Transfers",
+      "item": [
+        {
+          "name": "Create a transfer: 201 POSTED or 202 PENDING (risk review). Step-up above the threshold.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              },
+              {
+                "key": "idempotency-key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/transfers",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "transfers"],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "List transfers",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/transfers",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "transfers"],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Get a transfer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/transfers/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "transfers", ":id"],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Reverse a POSTED transfer (finance)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              },
+              {
+                "key": "idempotency-key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/transfers/:id/reverse",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "transfers", ":id", "reverse"],
+              "query": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Payments",
+      "item": [
+        {
+          "name": "Create a top-up payment intent (provider test mode)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              },
+              {
+                "key": "idempotency-key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/payment-intents",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "payment-intents"],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "List own payment intents",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/payment-intents",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "payment-intents"],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Confirm with a SIMULATED/test payment method; outcome arrives by webhook",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              },
+              {
+                "key": "idempotency-key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/payment-intents/:id/confirm",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "payment-intents", ":id", "confirm"],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Cancel before processing",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/payment-intents/:id/cancel",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "payment-intents", ":id", "cancel"],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Get a payment intent",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/payment-intents/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "payment-intents", ":id"],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Refund (≤ refundable remainder; finance)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              },
+              {
+                "key": "idempotency-key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/refunds",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "refunds"],
+              "query": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Webhooks",
+      "item": [
+        {
+          "name": "Provider webhook (HMAC-SHA256 `fincore-signature: t=..,v1=..`, 5 min tolerance, deduplicated)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/webhooks/payments",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "webhooks", "payments"],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Stripe TEST MODE webhook (Stripe-Signature)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/webhooks/stripe",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "webhooks", "stripe"],
+              "query": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Disputes",
+      "item": [
+        {
+          "name": "Raise a dispute on a posted transfer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/disputes",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "disputes"],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "List disputes (own, or all for support/finance)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/disputes",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "disputes"],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Review/resolve a dispute (support up to limit; RESOLVED_CUSTOMER needs step-up)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/disputes/:id/transition",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "disputes", ":id", "transition"],
+              "query": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Statements",
+      "item": [
+        {
+          "name": "Generate/fetch a monthly statement (cross-checked by analytics)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/statements",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "statements"],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Export a statement as CSV or PDF (?format=csv|pdf)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/statements/:id/export",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "statements", ":id", "export"],
+              "query": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Operations",
+      "item": [
+        {
+          "name": "Risk alerts (decision support, not proof of fraud)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/risk-alerts",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "risk-alerts"],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Investigate / clear (posts held transfer) / escalate (fails it)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/risk-alerts/:id/transition",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "risk-alerts", ":id", "transition"],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Provider settlements",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/settlements",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "settlements"],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Resolve a mismatched/failed settlement (recovery out of suspense)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/settlements/:id/resolve",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "settlements", ":id", "resolve"],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Reconcile a settlement against the ledger",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reconciliation/runs",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "reconciliation", "runs"],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Reconciliation run with items",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reconciliation/runs/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "reconciliation", "runs", ":id"],
+              "query": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Hash-chained audit log (chain_intact in meta)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/audit-log",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "audit-log"],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Dead-lettered jobs",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/failed-jobs",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "failed-jobs"],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Replay a dead-lettered job (idempotent handlers)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/failed-jobs/:id/replay",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "failed-jobs", ":id", "replay"],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Users and roles (masked)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/users",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "users"],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Grant/revoke a role",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"envelope + request id\", () => { const j = pm.response.json(); pm.expect(j.data !== undefined || j.error !== undefined).to.be.true; pm.expect(pm.response.headers.get(\"x-request-id\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-token-delivery",
+                "value": "body"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/users/:id/roles",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "users", ":id", "roles"],
+              "query": []
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
