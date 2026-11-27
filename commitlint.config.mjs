@@ -1,0 +1,36 @@
+// Conventional Commits (Assessment 10). Example: "feat(ledger): add deferred balance trigger"
+export default {
+  extends: ["@commitlint/config-conventional"],
+  rules: {
+    "scope-enum": [
+      2,
+      "always",
+      [
+        "repo",
+        "deps",
+        "ci",
+        "docker",
+        "docs",
+        "db",
+        "ledger",
+        "auth",
+        "transfers",
+        "payments",
+        "disputes",
+        "reconciliation",
+        "risk",
+        "statements",
+        "audit",
+        "api",
+        "workers",
+        "web",
+        "analytics",
+        "calculations",
+        "contracts",
+        "infra",
+        "release",
+      ],
+    ],
+    "body-max-line-length": [1, "always", 120],
+  },
+};
