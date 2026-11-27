@@ -1,0 +1,19 @@
+# Changes to money-critical code require review from the owners below (Assessment 10).
+# Replace @fincore-owner with the real GitHub handles once the repository exists (see docs/assessments/10-git-governance.md).
+
+*                                       @fincore-owner
+
+# Ledger, money movement and calculations
+/apps/api/src/modules/ledger/           @fincore-owner
+/apps/api/src/modules/transfers/        @fincore-owner
+/apps/api/src/modules/payments/         @fincore-owner
+/apps/api/src/modules/refunds/          @fincore-owner
+/services/analytics/src/fincore_analytics/calculations/  @fincore-owner
+
+# Schema and data-integrity rules
+/db/migrations/                         @fincore-owner
+
+# Auth and security-sensitive config
+/apps/api/src/modules/auth/             @fincore-owner
+/infra/                                 @fincore-owner
+/.github/                               @fincore-owner
