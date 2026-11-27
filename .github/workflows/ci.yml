@@ -1,0 +1,142 @@
+# Phase 1 CI skeleton. Phase 10 extends it into the full secure pipeline:
+# integration (Testcontainers), E2E, dependency, secret and image scans, signed images, staging deploy, approval, rollback.
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+env:
+  TURBO_TELEMETRY_DISABLED: "1"
+  NEXT_TELEMETRY_DISABLED: "1"
+
+jobs:
+  commitlint:
+    name: commitlint
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version-file: .nvmrc, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - name: Lint commit messages in this PR
+        run: pnpm exec commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }} --verbose
+
+  node:
+    name: node (lint, typecheck, test, build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version-file: .nvmrc, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm format:check
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build
+      - name: Upload API coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-coverage
+          path: apps/api/coverage/
+          if-no-files-found: ignore
+
+  python:
+    name: python (ruff, mypy, pytest)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: services/analytics
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --frozen
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run mypy
+      - run: uv run pytest --cov=fincore_analytics --cov-report=term-missing --junitxml=pytest-report.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pytest-report
+          path: services/analytics/pytest-report.xml
+
+  secret-scan:
+    name: secret scan (gitleaks)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - name: gitleaks over full history
+        run: |
+          docker run --rm -v "$PWD:/repo" ghcr.io/gitleaks/gitleaks:latest \
+            git /repo --redact --verbose --exit-code 1
+
+  compose-smoke:
+    name: compose smoke (clean clone → healthy stack)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs: [node, python]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create .env from the committed placeholders
+        run: cp .env.example .env
+      - name: Validate compose files
+        run: |
+          docker compose config --quiet
+          docker compose -f compose.yaml -f infra/compose/compose.dev.yaml config --quiet
+          docker compose -f compose.yaml -f infra/compose/compose.prod.yaml config --quiet
+      - name: Build and start the stack, waiting for every healthcheck
+        run: docker compose up -d --build --wait --wait-timeout 300
+      - name: Smoke tests through the reverse proxy
+        run: |
+          set -euo pipefail
+          curl -fsS http://localhost:8080/ | grep -q "SIMULATED FUNDS"
+          code=$(curl -s -o body.json -w '%{http_code}' http://localhost:8080/api/v1/does-not-exist)
+          test "$code" = "404"
+          grep -q '"code":"NOT_FOUND"' body.json
+          # internal endpoints must not be routed publicly
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/metrics)" = "404"
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/readyz)" = "404"
+      - name: Evidence (non-root users, image sizes, network isolation)
+        run: |
+          set -euo pipefail
+          for s in api workers web analytics; do
+            uid=$(docker compose exec -T "$s" id -u)
+            echo "$s runs as uid=$uid"
+            test "$uid" != "0"
+          done
+          docker image ls --format '{{.Repository}}:{{.Tag}} {{.Size}}' | grep fincore
+          # postgres and redis must publish no host ports in the base stack
+          test -z "$(docker compose port postgres 5432 2>/dev/null || true)"
+          test -z "$(docker compose port redis 6379 2>/dev/null || true)"
+      - name: Graceful shutdown drains (SIGTERM → exit 0)
+        run: |
+          docker compose stop -t 30 api workers
+          docker compose logs api workers | grep -E "shutdown complete"
+      - name: Dump logs on failure
+        if: failure()
+        run: docker compose logs --no-color | tail -n 300
+      - name: Tear down
+        if: always()
+        run: docker compose down -v
