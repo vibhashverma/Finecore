@@ -40,9 +40,7 @@ def test_readyz_shutting_down() -> None:
 
 
 def test_unknown_route_uses_error_envelope() -> None:
-    res = TestClient(create_app()).get(
-        "/analytics/v1/nope", headers={"x-request-id": "req_abcdef12"}
-    )
+    res = TestClient(create_app()).get("/analytics/v1/nope", headers={"x-request-id": "req_abcdef12"})
     assert res.status_code == 404
     body = res.json()["error"]
     assert body["code"] == "NOT_FOUND"

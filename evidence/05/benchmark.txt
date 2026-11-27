@@ -1,0 +1,5 @@
+fee (Decimal, half-even, capped)       n= 200000    3063.8 ms        65,278 ops/s  check=25000050
+risk score (explainable rules)         n=  50000     179.7 ms       278,290 ops/s  check=224980
+statement summarize (exact ints)       n= 500000     121.3 ms     4,121,359 ops/s  check=41666750000
+reconciliation compare                 n= 100000     591.2 ms       169,156 ops/s  check=100
+float 0.1+0.2 == 0.3 ? False | Decimal: True

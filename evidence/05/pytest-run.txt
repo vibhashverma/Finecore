@@ -1,0 +1,38 @@
+# analytics pytest 2026-11-27T16:58:48Z
+============================= test session starts =============================
+platform win32 -- Python 3.13.5, pytest-9.2.0, pluggy-1.7.0
+rootdir: C:\Users\hp\Desktop\FineCore\services\analytics
+configfile: pyproject.toml
+testpaths: tests
+plugins: anyio-4.16.0, hypothesis-6.170.22, cov-7.1.0
+collected 58 items
+
+tests\test_app.py ............                                           [ 20%]
+tests\test_calculations.py ................................              [ 75%]
+tests\test_main.py ..                                                    [ 79%]
+tests\test_risk_and_api.py ............                                  [100%]
+
+============================== warnings summary ===============================
+.venv\Lib\site-packages\fastapi\testclient.py:1
+  C:\Users\hp\Desktop\FineCore\services\analytics\.venv\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=============================== tests coverage ================================
+_______________ coverage: platform win32, python 3.13.5-final-0 _______________
+
+Name                                    Stmts   Miss  Cover
+-----------------------------------------------------------
+src\fincore_analytics\__init__.py           0      0   100%
+src\fincore_analytics\api.py              118      3    97%
+src\fincore_analytics\app.py               72      0   100%
+src\fincore_analytics\calculations.py     102      2    98%
+src\fincore_analytics\config.py            15      1    93%
+src\fincore_analytics\logging.py            4      0   100%
+src\fincore_analytics\main.py              36     21    42%
+src\fincore_analytics\money.py             17      0   100%
+src\fincore_analytics\risk.py              45      1    98%
+src\fincore_analytics\synthetic.py         26      0   100%
+-----------------------------------------------------------
+TOTAL                                     435     28    94%
+======================== 58 passed, 1 warning in 7.98s ========================

@@ -1,0 +1,249 @@
+{
+ "disclaimer": "Risk scores are decision support for analysts, not proof of fraud.",
+ "samples": [
+  {
+   "features": {
+    "amount_minor": 6526139,
+    "currency": "INR",
+    "hour_utc": 3,
+    "beneficiary_age_hours": 0,
+    "account_age_days": 3,
+    "transfers_last_hour": 8,
+    "amount_last_24h_minor": 1793160,
+    "avg_amount_30d_minor": 343481,
+    "distinct_beneficiaries_24h": 7
+   },
+   "score": 100,
+   "reasons": [
+    {
+     "code": "VELOCITY_HIGH",
+     "detail": "8 transfers in the last hour (>= 5)",
+     "weight": 30
+    },
+    {
+     "code": "AMOUNT_SPIKE",
+     "detail": "amount is at least 5x the 30-day average",
+     "weight": 25
+    },
+    {
+     "code": "LARGE_AMOUNT",
+     "detail": "single transfer at or above the large-amount threshold",
+     "weight": 15
+    },
+    {
+     "code": "NEW_BENEFICIARY",
+     "detail": "beneficiary added less than 1 hour ago",
+     "weight": 20
+    },
+    {
+     "code": "FAN_OUT",
+     "detail": "7 distinct recipients in 24 hours",
+     "weight": 15
+    },
+    {
+     "code": "UNUSUAL_HOUR",
+     "detail": "initiated between 00:00 and 05:00 UTC",
+     "weight": 5
+    }
+   ]
+  },
+  {
+   "features": {
+    "amount_minor": 6600650,
+    "currency": "INR",
+    "hour_utc": 3,
+    "beneficiary_age_hours": 0,
+    "account_age_days": 1,
+    "transfers_last_hour": 4,
+    "amount_last_24h_minor": 936573,
+    "avg_amount_30d_minor": 471475,
+    "distinct_beneficiaries_24h": 5
+   },
+   "score": 95,
+   "reasons": [
+    {
+     "code": "VELOCITY_ELEVATED",
+     "detail": "4 transfers in the last hour (>= 3)",
+     "weight": 15
+    },
+    {
+     "code": "AMOUNT_SPIKE",
+     "detail": "amount is at least 5x the 30-day average",
+     "weight": 25
+    },
+    {
+     "code": "LARGE_AMOUNT",
+     "detail": "single transfer at or above the large-amount threshold",
+     "weight": 15
+    },
+    {
+     "code": "NEW_BENEFICIARY",
+     "detail": "beneficiary added less than 1 hour ago",
+     "weight": 20
+    },
+    {
+     "code": "FAN_OUT",
+     "detail": "5 distinct recipients in 24 hours",
+     "weight": 15
+    },
+    {
+     "code": "UNUSUAL_HOUR",
+     "detail": "initiated between 00:00 and 05:00 UTC",
+     "weight": 5
+    }
+   ]
+  },
+  {
+   "features": {
+    "amount_minor": 5983740,
+    "currency": "INR",
+    "hour_utc": 0,
+    "beneficiary_age_hours": 0,
+    "account_age_days": 3,
+    "transfers_last_hour": 7,
+    "amount_last_24h_minor": 1371374,
+    "avg_amount_30d_minor": 332430,
+    "distinct_beneficiaries_24h": 8
+   },
+   "score": 100,
+   "reasons": [
+    {
+     "code": "VELOCITY_HIGH",
+     "detail": "7 transfers in the last hour (>= 5)",
+     "weight": 30
+    },
+    {
+     "code": "AMOUNT_SPIKE",
+     "detail": "amount is at least 5x the 30-day average",
+     "weight": 25
+    },
+    {
+     "code": "LARGE_AMOUNT",
+     "detail": "single transfer at or above the large-amount threshold",
+     "weight": 15
+    },
+    {
+     "code": "NEW_BENEFICIARY",
+     "detail": "beneficiary added less than 1 hour ago",
+     "weight": 20
+    },
+    {
+     "code": "FAN_OUT",
+     "detail": "8 distinct recipients in 24 hours",
+     "weight": 15
+    },
+    {
+     "code": "UNUSUAL_HOUR",
+     "detail": "initiated between 00:00 and 05:00 UTC",
+     "weight": 5
+    }
+   ]
+  },
+  {
+   "features": {
+    "amount_minor": 397716,
+    "currency": "INR",
+    "hour_utc": 6,
+    "beneficiary_age_hours": 4352,
+    "account_age_days": 94,
+    "transfers_last_hour": 0,
+    "amount_last_24h_minor": 74769,
+    "avg_amount_30d_minor": 132572,
+    "distinct_beneficiaries_24h": 0
+   },
+   "score": 0,
+   "reasons": []
+  },
+  {
+   "features": {
+    "amount_minor": 364372,
+    "currency": "INR",
+    "hour_utc": 20,
+    "beneficiary_age_hours": 2696,
+    "account_age_days": 481,
+    "transfers_last_hour": 2,
+    "amount_last_24h_minor": 1766697,
+    "avg_amount_30d_minor": 364372,
+    "distinct_beneficiaries_24h": 0
+   },
+   "score": 0,
+   "reasons": []
+  },
+  {
+   "features": {
+    "amount_minor": 771394,
+    "currency": "INR",
+    "hour_utc": 21,
+    "beneficiary_age_hours": 61,
+    "account_age_days": 708,
+    "transfers_last_hour": 0,
+    "amount_last_24h_minor": 959090,
+    "avg_amount_30d_minor": 385697,
+    "distinct_beneficiaries_24h": 2
+   },
+   "score": 0,
+   "reasons": []
+  },
+  {
+   "features": {
+    "amount_minor": 6780460,
+    "currency": "INR",
+    "hour_utc": 0,
+    "beneficiary_age_hours": 0,
+    "account_age_days": 2,
+    "transfers_last_hour": 6,
+    "amount_last_24h_minor": 1589620,
+    "avg_amount_30d_minor": 339023,
+    "distinct_beneficiaries_24h": 4
+   },
+   "score": 100,
+   "reasons": [
+    {
+     "code": "VELOCITY_HIGH",
+     "detail": "6 transfers in the last hour (>= 5)",
+     "weight": 30
+    },
+    {
+     "code": "AMOUNT_SPIKE",
+     "detail": "amount is at least 5x the 30-day average",
+     "weight": 25
+    },
+    {
+     "code": "LARGE_AMOUNT",
+     "detail": "single transfer at or above the large-amount threshold",
+     "weight": 15
+    },
+    {
+     "code": "NEW_BENEFICIARY",
+     "detail": "beneficiary added less than 1 hour ago",
+     "weight": 20
+    },
+    {
+     "code": "FAN_OUT",
+     "detail": "4 distinct recipients in 24 hours",
+     "weight": 15
+    },
+    {
+     "code": "UNUSUAL_HOUR",
+     "detail": "initiated between 00:00 and 05:00 UTC",
+     "weight": 5
+    }
+   ]
+  },
+  {
+   "features": {
+    "amount_minor": 65598,
+    "currency": "INR",
+    "hour_utc": 9,
+    "beneficiary_age_hours": 3304,
+    "account_age_days": 140,
+    "transfers_last_hour": 1,
+    "amount_last_24h_minor": 810577,
+    "avg_amount_30d_minor": 65598,
+    "distinct_beneficiaries_24h": 0
+   },
+   "score": 0,
+   "reasons": []
+  }
+ ]
+}
