@@ -1,0 +1,26 @@
+# Production-like override (staging and prod). Hardened further in Phases 10–11:
+# pinned image digests, Docker secrets, resource limits, no plain-HTTP site.
+services:
+  api:
+    restart: always
+    deploy:
+      resources:
+        limits: { cpus: "1.0", memory: 512M }
+  workers:
+    restart: always
+    deploy:
+      resources:
+        limits: { cpus: "1.0", memory: 512M }
+  analytics:
+    restart: always
+    deploy:
+      resources:
+        limits: { cpus: "0.5", memory: 384M }
+  web:
+    restart: always
+    deploy:
+      resources:
+        limits: { cpus: "1.0", memory: 512M }
+  mailpit:
+    # Staging keeps the sandbox inbox; the UI is never published.
+    restart: always

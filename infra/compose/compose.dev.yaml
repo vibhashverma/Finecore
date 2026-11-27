@@ -1,0 +1,15 @@
+# Local development override. It publishes the DB and Mailpit UI on 127.0.0.1 ONLY, for local tooling.
+# A container on an internal-only network cannot publish ports, so these services also join `devhost`.
+services:
+  postgres:
+    ports: ["127.0.0.1:5432:5432"]
+    networks: [data, devhost]
+  redis:
+    ports: ["127.0.0.1:6379:6379"]
+    networks: [data, devhost]
+  mailpit:
+    ports: ["127.0.0.1:8025:8025"]
+    networks: [data, devhost]
+
+networks:
+  devhost: {}

@@ -1,0 +1,37 @@
+# Single public origin (ADR-004). Locally SITE_ADDRESS defaults to :80 (plain HTTP).
+# In staging/prod SITE_ADDRESS is the domain, and Caddy obtains and renews a TLS certificate automatically.
+{
+	admin off
+}
+
+{$SITE_ADDRESS::80} {
+	encode zstd gzip
+
+	# The edge always mints the request id; client-supplied values are overwritten to prevent log spoofing.
+	request_header X-Request-Id "req_{http.request.uuid}"
+
+	header {
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		X-Frame-Options "DENY"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		-Server
+	}
+
+	# Internal-only endpoints are never routed publicly.
+	@internal path /metrics /metrics/* /readyz
+	respond @internal 404
+
+	handle /api/* {
+		reverse_proxy api:4000
+	}
+
+	handle {
+		reverse_proxy web:3000
+	}
+
+	log {
+		output stdout
+		format json
+	}
+}
