@@ -1,0 +1,11 @@
+== Ledger totals per currency (debits must equal credits) ==
+ currency | total_debits_minor | total_credits_minor | journals 
+----------+--------------------+---------------------+----------
+ INR      |            8500000 |             8500000 |        3
+ USD      |             100000 |              100000 |        1
+
+== Invariant violations (empty = healthy) ==
+ check_name | detail 
+------------+--------
+
+OK: all ledger invariants hold

@@ -1,0 +1,100 @@
+-- psql 18.4 as role fincore_api against PostgreSQL 16.16, 2026-11-27T09:07:54Z
+-- Assessment 03 evidence: shows, statement by statement, that the database itself refuses ledger
+-- tampering and unbalanced journals. Run as the APP role (fincore_api), the same role the API uses:
+--   psql "$APP_DATABASE_URL" -a -f scripts/ledger-proof.sql > evidence/03/ledger-proof.txt 2>&1
+-- Every attempt runs inside a transaction that ends in ROLLBACK, so the database is left unchanged.
+\set ON_ERROR_STOP off
+\set VERBOSITY default
+\echo '--- 1. A balanced journal commits (then rolled back to keep the demo data clean)'
+--- 1. A balanced journal commits (then rolled back to keep the demo data clean)
+BEGIN;
+BEGIN
+WITH alice AS (SELECT w.account_id FROM wallets w WHERE w.account_number = 'FC1000000001'),
+     bob   AS (SELECT w.account_id FROM wallets w WHERE w.account_number = 'FC1000000003'),
+     t     AS (INSERT INTO transactions (kind, currency, description) VALUES ('TRANSFER', 'INR', 'proof: balanced') RETURNING id)
+INSERT INTO ledger_entries (transaction_id, account_id, currency, direction, amount_minor)
+SELECT t.id, alice.account_id, 'INR', 'DEBIT', 10000 FROM t, alice
+UNION ALL
+SELECT t.id, bob.account_id, 'INR', 'CREDIT', 10000 FROM t, bob;
+INSERT 0 2
+SET CONSTRAINTS ALL IMMEDIATE;  -- run the deferred balance check now instead of at COMMIT
+SET CONSTRAINTS
+SELECT 'balanced journal accepted' AS result;
+          result           
+---------------------------
+ balanced journal accepted
+(1 row)
+
+ROLLBACK;
+ROLLBACK
+\echo '--- 2. An UNBALANCED journal is refused (FC002)'
+--- 2. An UNBALANCED journal is refused (FC002)
+BEGIN;
+BEGIN
+WITH alice AS (SELECT w.account_id FROM wallets w WHERE w.account_number = 'FC1000000001'),
+     bob   AS (SELECT w.account_id FROM wallets w WHERE w.account_number = 'FC1000000003'),
+     t     AS (INSERT INTO transactions (kind, currency, description) VALUES ('TRANSFER', 'INR', 'proof: unbalanced') RETURNING id)
+INSERT INTO ledger_entries (transaction_id, account_id, currency, direction, amount_minor)
+SELECT t.id, alice.account_id, 'INR', 'DEBIT', 10000 FROM t, alice
+UNION ALL
+SELECT t.id, bob.account_id, 'INR', 'CREDIT', 9999 FROM t, bob;
+INSERT 0 2
+SET CONSTRAINTS ALL IMMEDIATE;
+psql:scripts/ledger-proof.sql:30: ERROR:  transaction e93b78a1-be3d-4d83-8f54-00ed81469217 is unbalanced: debits 10000 <> credits 9999
+CONTEXT:  PL/pgSQL function check_transaction_integrity() line 21 at RAISE
+ROLLBACK;
+ROLLBACK
+\echo '--- 3. UPDATE on ledger_entries is refused (no privilege for the app role)'
+--- 3. UPDATE on ledger_entries is refused (no privilege for the app role)
+BEGIN;
+BEGIN
+UPDATE ledger_entries SET amount_minor = 1 WHERE id = (SELECT min(id) FROM ledger_entries);
+psql:scripts/ledger-proof.sql:35: ERROR:  permission denied for table ledger_entries
+ROLLBACK;
+ROLLBACK
+\echo '--- 4. DELETE on ledger_entries is refused'
+--- 4. DELETE on ledger_entries is refused
+BEGIN;
+BEGIN
+DELETE FROM ledger_entries WHERE id = (SELECT min(id) FROM ledger_entries);
+psql:scripts/ledger-proof.sql:40: ERROR:  permission denied for table ledger_entries
+ROLLBACK;
+ROLLBACK
+\echo '--- 5. Overdraft is refused by the balance CHECK (chandra has 10000.00 INR = 1000000 minor)'
+--- 5. Overdraft is refused by the balance CHECK (chandra has 10000.00 INR = 1000000 minor)
+BEGIN;
+BEGIN
+WITH chandra AS (SELECT w.account_id FROM wallets w WHERE w.account_number = 'FC1000000004'),
+     bob     AS (SELECT w.account_id FROM wallets w WHERE w.account_number = 'FC1000000003'),
+     t       AS (INSERT INTO transactions (kind, currency, description) VALUES ('TRANSFER', 'INR', 'proof: overdraft') RETURNING id)
+INSERT INTO ledger_entries (transaction_id, account_id, currency, direction, amount_minor)
+SELECT t.id, chandra.account_id, 'INR', 'DEBIT', 1000001 FROM t, chandra
+UNION ALL
+SELECT t.id, bob.account_id, 'INR', 'CREDIT', 1000001 FROM t, bob;
+psql:scripts/ledger-proof.sql:51: ERROR:  new row for relation "account_balances" violates check constraint "available_not_below_floor"
+DETAIL:  Failing row contains (8169f8b1-a986-4d54-ba8e-2c4e1e9d12d4, -1, 0, 0, 0, 2026-11-27 14:37:54.6507+05:30).
+CONTEXT:  SQL statement "UPDATE account_balances b
+     SET posted_minor = b.posted_minor
+                        + CASE WHEN NEW.direction = a.normal_side THEN NEW.amount_minor ELSE -NEW.amount_minor END,
+         updated_at = now()
+    FROM accounts a
+   WHERE b.account_id = NEW.account_id
+     AND a.id = NEW.account_id"
+PL/pgSQL function ledger_entry_apply_balance() line 3 at SQL statement
+ROLLBACK;
+ROLLBACK
+\echo '--- 6. Writing a balance directly is refused'
+--- 6. Writing a balance directly is refused
+BEGIN;
+BEGIN
+UPDATE account_balances SET posted_minor = 999999999;
+psql:scripts/ledger-proof.sql:56: ERROR:  permission denied for table account_balances
+ROLLBACK;
+ROLLBACK
+\echo '--- 7. Invariant check (must be empty)'
+--- 7. Invariant check (must be empty)
+SELECT * FROM ledger_invariant_violations();
+ check_name | detail 
+------------+--------
+(0 rows)
+

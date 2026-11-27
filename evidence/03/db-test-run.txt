@@ -1,0 +1,69 @@
+# @fincore/db test run: 2026-11-27T09:13:05Z, embedded PostgreSQL 16.16, connected as fincore_api
+
+ RUN  v5.1.2 C:/Users/hp/Desktop/FineCore/packages/db
+
+ ✓ test/balances-holds.test.ts > overdraft protection (database backstop) > refuses a debit that would take a wallet below zero, with no app-level check at all 332ms
+ ✓ test/balances-holds.test.ts > overdraft protection (database backstop) > allows spending exactly to zero (boundary) 48ms
+ ✓ test/state-and-audit.test.ts > database-enforced state machines with automatic history > records each transition with actor, reason and request id from SET LOCAL 327ms
+ ✓ test/ledger.test.ts > double-entry journal > commits a balanced transfer and updates both cached balances 383ms
+ ✓ test/ledger.test.ts > double-entry journal > supports multi-line journals (transfer plus fee) as long as they balance 49ms
+ ✓ test/reversals.test.ts > reversals > an exact mirror reverses the movement and leaves the original untouched 425ms
+ ✓ test/reversals.test.ts > reversals > a transaction can be reversed only once (UNIQUE) 57ms
+ ✓ test/ledger.test.ts > double-entry journal > rejects an unbalanced journal at COMMIT and persists nothing 48ms
+ ✓ test/ledger.test.ts > double-entry journal > rejects a journal with a single line 31ms
+ ✓ test/ledger.test.ts > double-entry journal > rejects a journal header with no lines 14ms
+ ✓ test/ledger.test.ts > double-entry journal > rejects a line amount of 0n 33ms
+ ✓ test/reversals.test.ts > reversals > a reversal with a different amount is rejected at COMMIT 47ms
+ ✓ test/reversals.test.ts > reversals > a reversal hitting the wrong accounts is rejected 57ms
+ ✓ test/ledger.test.ts > double-entry journal > rejects a line amount of -5n 32ms
+ ✓ test/ledger.test.ts > double-entry journal > rejects a line whose currency differs from its account (composite FK) 37ms
+ ✓ test/ledger.test.ts > double-entry journal > rejects mixing currencies inside one journal 35ms
+ ✓ test/reversals.test.ts > reversals > a reversal cannot itself be reversed 52ms
+ ✓ test/reversals.test.ts > reversals > kind and reverses_transaction_id must agree 39ms
+ ✓ test/ledger.test.ts > double-entry journal > rejects appending even a balanced pair to an already-committed journal 47ms
+ ✓ test/ledger.test.ts > double-entry journal > overwrites client-supplied server fields (posted_at) 41ms
+ ✓ test/reversals.test.ts > reversals > cannot reverse if the recipient has already spent the funds (no overdraft via reversal) 116ms
+ ✓ test/roles-and-constraints.test.ts > credentials > rejects anything that is not an Argon2id hash (no plaintext passwords) 1824ms
+ ✓ test/roles-and-constraints.test.ts > credentials > treats emails case-insensitively (citext UNIQUE) 925ms
+ ✓ test/roles-and-constraints.test.ts > chart of accounts > has exactly one of each system account per currency 15ms
+ ✓ test/state-and-audit.test.ts > database-enforced state machines with automatic history > rejects illegal transitions and illegal initial states 2539ms
+ ✓ test/seed-and-bootstrap.test.ts > seed > creates synthetic users and funded wallets once, and is idempotent 2883ms
+ ✓ test/seed-and-bootstrap.test.ts > bootstrap helpers > renders psql variables as safely quoted literals and identifiers 13ms
+ ✓ test/seed-and-bootstrap.test.ts > bootstrap helpers > refuses to render with a missing variable 15ms
+ ✓ test/seed-and-bootstrap.test.ts > bootstrap helpers > redacts passwords from connection URLs in error output 12ms
+ ✓ test/ledger.test.ts > append-only ledger > the app role has no privilege to UPDATE or DELETE ledger entries or journals 2292ms
+ ✓ test/balances-holds.test.ts > overdraft protection (database backstop) > 50 concurrent naive debits never overdraw: exactly floor(balance/amount) succeed 2834ms
+ ✓ test/balances-holds.test.ts > overdraft protection (database backstop) > the app role can lock a balance row but cannot write balances 113ms
+ ✓ test/balances-holds.test.ts > overdraft protection (database backstop) > system accounts have no balance row and may run negative (e.g. SIMULATED_FUNDING) 15ms
+ ✓ test/balances-holds.test.ts > holds > reduce available funds; releasing restores them 104ms
+ ✓ test/balances-holds.test.ts > holds > refuses a hold larger than the available balance 78ms
+ ✓ test/balances-holds.test.ts > holds > captures set released_at and stop counting toward held 71ms
+ ✓ test/roles-and-constraints.test.ts > chart of accounts > accounts are immutable (no privilege for the app, a trigger for the owner) 900ms
+ ✓ test/balances-holds.test.ts > holds > enforces the hold state machine (RELEASED cannot become ACTIVE again) 100ms
+ ✓ test/state-and-audit.test.ts > database-enforced state machines with automatic history > enforces business checks tied to states (MATCHED requires equal amounts) 745ms
+ ✓ test/state-and-audit.test.ts > database-enforced state machines with automatic history > deduplicates provider payouts (UNIQUE provider + payout id) 238ms
+ ✓ test/roles-and-constraints.test.ts > chart of accounts > rejects an account whose normal side contradicts its type 228ms
+ ✓ test/roles-and-constraints.test.ts > chart of accounts > a wallet can only be backed by a non-system LIABILITY account 48ms
+ ✓ test/balances-holds.test.ts > holds > hold amounts are immutable: no privilege for the app, a trigger for the owner 384ms
+ ✓ test/balances-holds.test.ts > holds > cannot be placed on a system account (no cached balance to protect) 64ms
+ ✓ test/ledger.test.ts > append-only ledger > even the schema owner cannot UPDATE, DELETE or TRUNCATE ledger tables (trigger) 1150ms
+ ✓ test/ledger.test.ts > append-only ledger > rolls back the whole journal if any statement fails mid-way 54ms
+ ✓ test/state-and-audit.test.ts > database-enforced state machines with automatic history > wallet lifecycle: FROZEN can be reactivated, CLOSED is final 329ms
+ ✓ test/roles-and-constraints.test.ts > least-privilege roles > the app role cannot create objects or read the migrations table 388ms
+ ✓ test/roles-and-constraints.test.ts > least-privilege roles > the analytics role cannot see or read core tables and is read-only by default 393ms
+ ✓ test/roles-and-constraints.test.ts > least-privilege roles > runtime sessions carry a statement timeout 13ms
+ ✓ test/state-and-audit.test.ts > database-enforced state machines with automatic history > history can't be forged or edited 437ms
+ ✓ test/state-and-audit.test.ts > hash-chained audit log > chains every row and verifies clean; client-supplied hashes are ignored 22ms
+ ✓ test/state-and-audit.test.ts > hash-chained audit log > stays gap-free and valid under 30 concurrent writers 1196ms
+ ✓ test/state-and-audit.test.ts > hash-chained audit log > the app role cannot edit or delete audit rows 152ms
+ ✓ test/state-and-audit.test.ts > hash-chained audit log > detects tampering by a superuser who bypasses the triggers 114ms
+ ✓ test/migrations-and-invariants.test.ts > migrations > every migration rolls back cleanly and re-applies (down sections are real) 23129ms
+ ✓ test/migrations-and-invariants.test.ts > migrations > migration file names are timestamped and unique 10ms
+ ✓ test/migrations-and-invariants.test.ts > the invariant check is an independent detector > reports an unbalanced journal if the commit-time check were bypassed 187ms
+ ✓ test/migrations-and-invariants.test.ts > the invariant check is an independent detector > reports drift if a cached balance were corrupted 27ms
+
+ Test Files  7 passed (7)
+      Tests  59 passed (59)
+   Start at  14:43:10
+   Duration  39.36s (tests 91%, setup 5%, transform 3%, import 1%)
+
