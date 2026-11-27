@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { errorBodySchema } from "@fincore/contracts";
 import request from "supertest";
-import { afterEach, beforeAll, describe, expect, it } from "vitest";
+import { afterEach, beforeAll, describe, expect, inject, it } from "vitest";
 import { csvCell, formatMinor, simplePdf } from "../src/modules/statements.js";
 import { OPERATIONS } from "../src/openapi.js";
 import {
@@ -159,6 +159,25 @@ describe("statements", () => {
     expect(formatMinor(-5n, 2)).toBe("-0.05");
     expect(formatMinor(1000n, 0)).toBe("1000");
     expect(simplePdf(["hello"]).subarray(0, 8).toString()).toBe("%PDF-1.4");
+  });
+
+  it("regression: period boundaries are UTC regardless of the DB session time zone", async () => {
+    // Bug found 2026-11-28 at 00:12 IST: `posted_at < '2026-11-28'::date` was evaluated in the session time zone
+    // (Asia/Kolkata), dropping transactions posted after 18:30 UTC. Under UTC+14 the old query excluded "now"
+    // whenever now >= 10:00 UTC; with explicit UTC boundaries it is always included.
+    const kiritimati = await buildHarness({
+      DATABASE_URL: `${inject("appUrl")}&options=-c%20TimeZone%3DPacific%2FKiritimati`,
+    });
+    const tz = await kiritimati.deps.db.query<{ TimeZone: string }>("SHOW TimeZone");
+    expect(tz.rows[0]?.TimeZone).toBe("Pacific/Kiritimati");
+    const { a } = await postedTransfer("12345");
+    const token = await login(kiritimati, a.email); // this harness has its own JWT keys
+    const period = new Date().toISOString().slice(0, 7);
+    const s = await api(kiritimati, token).get(
+      `/statements?wallet_id=${a.wallet?.walletId}&period=${period}`,
+    );
+    expect(s.body.data).toMatchObject({ total_debits_minor: "12445", closing_minor: "987555" });
+    await kiritimati.deps.db.end();
   });
 
   it("rejects malformed and future periods", async () => {

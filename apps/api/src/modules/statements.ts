@@ -80,7 +80,7 @@ export function statementsRouter(deps: Deps): Router {
       await deps.db.query<Line>(
         `SELECT t.posted_at, t.kind, t.description, e.direction, e.amount_minor
          FROM ledger_entries e JOIN transactions t ON t.id = e.transaction_id
-        WHERE e.account_id = $1 AND t.posted_at >= $2::date AND t.posted_at < $3::date ORDER BY e.id`,
+        WHERE e.account_id = $1 AND t.posted_at >= ($2::date)::timestamp AT TIME ZONE 'UTC' AND t.posted_at < ($3::date)::timestamp AT TIME ZONE 'UTC' ORDER BY e.id`,
         [accountId, from, toExclusive],
       )
     ).rows;
@@ -110,7 +110,7 @@ export function statementsRouter(deps: Deps): Router {
         (
           await deps.db.query<{ v: bigint }>(
             `SELECT coalesce(sum(CASE e.direction WHEN 'CREDIT' THEN e.amount_minor ELSE -e.amount_minor END), 0)::bigint AS v
-           FROM ledger_entries e JOIN transactions t ON t.id = e.transaction_id WHERE e.account_id = $1 AND t.posted_at < $2::date`,
+           FROM ledger_entries e JOIN transactions t ON t.id = e.transaction_id WHERE e.account_id = $1 AND t.posted_at < ($2::date)::timestamp AT TIME ZONE 'UTC'`,
             [wallet.account_id, start],
           )
         ).rows[0]?.v ?? 0n;
