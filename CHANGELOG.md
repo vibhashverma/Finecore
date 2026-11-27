@@ -4,6 +4,22 @@ All notable changes are documented here. Format: [Keep a Changelog](https://keep
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-11-28
+
+### Added
+
+- Auth: Argon2id, RFC 6238 TOTP (SIMULATED delivery), EdDSA JWT cookies, rotating refresh with reuse detection, step-up, CSRF, lockout and rate limits, audited RBAC.
+- Transfer engine: idempotent, ordered locking, Decimal fees, fail-safe risk review with holds, reversals.
+- Payments: SIMULATED provider plus Stripe test adapter, signed and deduplicated webhooks, refunds, settlements, reconciliation into suspense.
+- Disputes, statements (CSV/PDF), risk alert workflow, audit log, failed-job replay, admin roles.
+- Postgres outbox job queue (workers); OpenAPI 3.1; Postman collection with Newman smoke.
+- Analytics: Decimal fees, interest, statements and reconciliation; explainable risk; synthetic data; benchmark.
+- Web: customer and ops dashboards; Playwright + axe E2E on the real stack.
+- Capstone and incident scripts with invariant proofs; runbooks; postmortems.
+- CI: scans, E2E, Trivy. Release: signed images, staging, approval, production, rollback.
+- Deploy: VM provisioning, backups, restore drill, monitoring and alerts.
+- ADR-008 to ADR-014.
+
 ## [0.2.0] - 2026-11-27
 
 ### Added

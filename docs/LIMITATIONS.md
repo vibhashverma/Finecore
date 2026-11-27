@@ -1,32 +1,41 @@
 # Known limitations, mocks and simulations
 
-This list is kept current every phase. Anything here is labelled `SIMULATED` or `MOCK` in code and UI.
+Anything listed here is labelled `SIMULATED`, `MOCK` or `SANDBOX` in code and UI.
 
 ## Simulated by design (educational scope)
 
-| Item                             | Status                | Notes                                                                                              |
-| -------------------------------- | --------------------- | -------------------------------------------------------------------------------------------------- |
-| All balances and funds           | SIMULATED             | No real money. Demo funding comes from a labelled `SIMULATED_FUNDING` equity account (Phase 2).    |
-| Customer identities / KYC        | SIMULATED             | Synthetic data only; `kyc_status` is simulated.                                                    |
-| Email delivery                   | SANDBOX               | Mailpit catches all mail; nothing is delivered.                                                    |
-| SMS delivery                     | MOCK                  | An adapter logs the message (redacted); no SMS provider.                                           |
-| Payment provider                 | SIMULATED + test mode | A local simulator with failure injection, plus a Stripe **test-mode** adapter (Phase 7).           |
-| MFA delivery                     | SIMULATED             | Real RFC 6238 TOTP. The dev-only `GET /auth/mfa/dev-code` endpoint exists only outside production. |
-| FX / multi-currency transactions | Out of scope          | Each transaction is single-currency (enforced by a composite FK).                                  |
+| Item                   | Status                            | Notes                                                                                                                             |
+| ---------------------- | --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| All balances and funds | SIMULATED                         | Demo money comes from the `SIMULATED_FUNDING` account or SIMULATED card top-ups                                                   |
+| Customers / KYC        | SIMULATED                         | Synthetic people on `.test` emails; `kyc_status` is simulated                                                                     |
+| Payment provider       | SIMULATED (+ Stripe test adapter) | `SimulatedProvider` is used everywhere. `StripeTestProvider` (sk_test_ only) is **not exercised**: it needs a Stripe test account |
+| Card details           | none                              | Only named test payment methods (`pm_simulated_success` / `pm_simulated_decline`); no card numbers anywhere                       |
+| Email                  | SANDBOX                           | Mailpit catches all mail                                                                                                          |
+| SMS                    | MOCK                              | Logs a redacted line only                                                                                                         |
+| MFA delivery           | SIMULATED                         | Real RFC 6238 TOTP. Seed users share a documented demo secret; the dev-code endpoint exists only in development/test              |
+| FX                     | Out of scope                      | Each transaction is single-currency (enforced by a composite FK)                                                                  |
+| Risk scores            | Decision support                  | Rule-based, tuned on synthetic data; never proof of fraud                                                                         |
 
-## Current gaps (updated in Phase 2)
+## Environment gaps (honest status)
 
-| Gap                                                                                                                                                                                                                                    | Planned                                                            |
-| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| Docker is not installed on the dev machine. DB tests and local dev use embedded PostgreSQL 16 instead (ADR-005); the Compose stack (including the `migrate` service and role bootstrap) is verified only by the CI `compose-smoke` job | Once Docker Desktop with WSL2 is installed                         |
-| Testcontainers (named in the brief) is replaced by embedded PostgreSQL 16, which also runs real Postgres                                                                                                                               | ADR-005; can be added if Docker becomes available                  |
-| The embedded-postgres Linux binaries have not yet run on a CI runner                                                                                                                                                                   | Verified by the first CI run after pushing                         |
-| `state_transitions.entity_id` and `transactions.reference_id` are polymorphic (no FK)                                                                                                                                                  | Accepted trade-off (ADR-007)                                       |
-| The invariant check does full table scans; audit inserts are serialised by one advisory lock                                                                                                                                           | Acceptable at this scale (ADR-006)                                 |
-| The repo has no GitHub remote yet; rulesets and CI runs are not yet evidenced                                                                                                                                                          | When the repo is pushed                                            |
-| Single maintainer: required approvals are 0 (see Assessment 10 doc). CODEOWNERS uses a placeholder handle                                                                                                                              | Replace with real handles; add a reviewer if one becomes available |
-| The Caddy container runs as root (it needs to bind ports 80/443)                                                                                                                                                                       | Phase 10: run as non-root with `NET_BIND_SERVICE` file capability  |
-| DB and Redis passwords are passed as env vars (visible in `docker inspect`)                                                                                                                                                            | Phase 10/11: Docker secrets / `_FILE` variables                    |
-| Images use floating tags (`mailpit:latest`, `caddy:2-alpine`, ...)                                                                                                                                                                     | Phase 10: pin digests                                              |
-| Graceful SIGTERM shutdown verified only in CI (Linux); Windows doesn't deliver POSIX signals                                                                                                                                           | n/a                                                                |
-| Starlette warns that `httpx` with `TestClient` is deprecated in favour of `httpx2`                                                                                                                                                     | Revisit when FastAPI's TestClient defaults change                  |
+| Gap                                                         | Impact / plan                                                                                                                                                            |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Docker not installed** on the dev machine                 | The Compose stack, Dockerfiles, Trivy and graceful-shutdown checks have **not been run**. They run in CI's `compose-smoke` job once the repo is pushed                   |
+| **Repo not on GitHub yet**                                  | CI/CD, rulesets, signed releases and the hotfix flow are written but **not evidenced**. Push, apply the rulesets, then capture runs into `evidence/10` and `evidence/11` |
+| **No VM / domain**                                          | HTTPS, firewall, monitoring dashboards and on-VM backups are prepared (`infra/deploy`) but **not deployed**. The restore drill **was** run locally (`evidence/14`)       |
+| Testcontainers replaced by embedded PostgreSQL 16 (ADR-005) | Same engine and role model, with no Docker required                                                                                                                      |
+| BullMQ replaced by a Postgres outbox queue (ADR-009)        | Redis is used only for rate limiting (in-memory fallback when absent: single instance only)                                                                              |
+| Embedded-postgres Linux binaries have not yet run in CI     | Verified on Windows only so far                                                                                                                                          |
+| Single maintainer                                           | Ruleset requires 0 approvals; CODEOWNERS uses a placeholder handle                                                                                                       |
+| Caddy runs as root; images use some floating tags           | Harden with non-root Caddy and digest pinning                                                                                                                            |
+| Database passwords are passed as env vars in Compose        | Move to Docker secrets or `_FILE` variables                                                                                                                              |
+
+## Design trade-offs accepted
+
+- `state_transitions.entity_id` and `transactions.reference_id` are polymorphic, so they have no foreign key (ADR-007).
+- The invariant check does full scans, and audit writes are serialised by one lock. Both are fine at this scale (ADR-006).
+- Disputes only move money for transfers. Disputes on payment intents can be recorded, but no chargeback money flow is modelled.
+- Interest is calculated (analytics, ACT/365) but no scheduled interest-posting job exists. The calculation endpoint and its tests are complete.
+- A statement for an open month is a snapshot; a new snapshot is created when new entries arrive.
+- A TOTP code is reusable within its 30 s window (single-use challenges and attempt limits mitigate this).
+- Starlette warns that `httpx` with `TestClient` is deprecated in favour of `httpx2`.

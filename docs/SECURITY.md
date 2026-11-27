@@ -1,0 +1,23 @@
+# Security review (OWASP Top 10, 2021), FinCore
+
+> This is an educational system with SIMULATED funds. A real deployment would need a professional security, privacy and compliance review.
+
+| Risk                              | Controls in FinCore                                                                                                                                                                                                                                                                                                |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **A01 Broken access control**     | **Server-side checks:** the RBAC matrix, re-read from the DB on every request; ownership filters inside SQL (IDOR → 404); step-up for sensitive actions; every denial audited. **Database:** least-privilege roles; the app role can't edit the ledger, balances or history. **Tests:** IDOR, role and CSRF tests. |
+| **A02 Cryptographic failures**    | **Credentials:** Argon2id (OWASP parameters). **Secrets at rest:** TOTP secrets encrypted with AES-256-GCM; refresh tokens stored only as SHA-256. **Transport:** HTTPS with HSTS (Caddy). **Tokens:** EdDSA JWTs. **Backups:** gpg AES-256. **Config:** live Stripe keys and dev keys are refused in production.  |
+| **A03 Injection**                 | **SQL:** parameterized everywhere (`pg`); no string-built SQL. **Input:** validated with Zod and Pydantic (strict mode; floats rejected). **Exports:** CSV formula-injection guard. **Logs:** request ids validated.                                                                                               |
+| **A04 Insecure design**           | **Database invariants:** balanced journals, append-only ledger, overdraft CHECK, state machines. **Requests:** idempotency on every money POST. **Risk:** fail-closed fees and fail-safe risk scoring. **Process:** threat cases covered in tests and incident simulations.                                        |
+| **A05 Security misconfiguration** | **HTTP:** Helmet headers; CSP everywhere except the Swagger UI route. **Containers:** non-root, read-only root filesystem, `cap_drop ALL`, internal networks; the DB is never published. **Errors:** generic 500s, never stack traces. **Config:** validated at startup.                                           |
+| **A06 Vulnerable components**     | `pnpm audit`, `pip-audit`, Trivy image scans, Dependabot and a lockfile, all in CI.                                                                                                                                                                                                                                |
+| **A07 Auth failures**             | **MFA:** TOTP. **Brute force:** lockout and rate limits. **Accounts:** no user enumeration. **Sessions:** refresh rotation with reuse detection, immediate revocation, idle and absolute timeouts, SameSite=Strict cookies plus CSRF.                                                                              |
+| **A08 Integrity failures**        | **Webhooks:** HMAC with a timestamp and constant-time compare, plus deduplication. **Audit:** hash-chained log. **Releases:** signed images (cosign) and SBOMs. **Migrations:** immutability guard.                                                                                                                |
+| **A09 Logging and monitoring**    | **Logs:** structured JSON with `request_id`, redacting secrets and PII. **Audit:** denials. **Alerts:** Prometheus (invariant, errors, latency, dead letters, uptime, TLS).                                                                                                                                        |
+| **A10 SSRF**                      | Outbound calls go only to configured URLs (analytics, provider, SMTP); nothing user-supplied is fetched. Workers run on an egress-only network.                                                                                                                                                                    |
+
+**Accepted residual risks** (see `docs/LIMITATIONS.md`):
+
+- A single VM: no high availability.
+- A superuser can disable triggers. This is detectable through the audit chain and the invariant check.
+- The in-memory rate limiter when Redis is absent: single instance only.
+- A TOTP code can be replayed within its 30 s window. This is mitigated by single-use MFA challenges and attempt limits.

@@ -83,11 +83,35 @@ evidence/NN/        Captured evidence per assessment
 
 Branch from `main`. Commits follow [Conventional Commits](https://www.conventionalcommits.org/) and are checked by commitlint. Open a PR using the template; CI must be green. See [docs/assessments/10-git-governance.md](docs/assessments/10-git-governance.md) for branch rules, releases and the hotfix flow.
 
+## Documentation map
+
+| Topic                        | Where                                                                                      |
+| ---------------------------- | ------------------------------------------------------------------------------------------ |
+| Architecture, data flow, ERD | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/PLAN.md](docs/PLAN.md)                 |
+| API guide and OpenAPI        | [docs/API.md](docs/API.md), `/api/v1/openapi.json`, `/api/docs`, [postman/](postman/)      |
+| Decisions                    | [docs/adr/](docs/adr/README.md) (ADR-001 to ADR-014)                                       |
+| Per-assessment docs          | [docs/assessments/](docs/assessments/) (01–15)                                             |
+| Test matrix                  | [docs/TEST_MATRIX.md](docs/TEST_MATRIX.md)                                                 |
+| Security (OWASP)             | [docs/SECURITY.md](docs/SECURITY.md)                                                       |
+| Runbooks and postmortems     | [docs/runbooks/](docs/runbooks/README.md), [docs/postmortems/](docs/postmortems/README.md) |
+| Deployment                   | [infra/deploy/README.md](infra/deploy/README.md)                                           |
+| Limitations and mocks        | [docs/LIMITATIONS.md](docs/LIMITATIONS.md)                                                 |
+| Review preparation           | [docs/REVIEW_PREP.md](docs/REVIEW_PREP.md)                                                 |
+| Evidence                     | [evidence/](evidence/)                                                                     |
+
+## Run everything locally without Docker
+
+```bash
+pnpm install && (cd services/analytics && uv sync)
+pnpm test                                      # TS suites incl. DB tests on embedded PostgreSQL 16
+(cd services/analytics && uv run pytest)       # analytics
+pnpm --filter @fincore/api scenario capstone   # brief §10: proves balanced ledger, no double posting
+pnpm --filter @fincore/api scenario incidents  # Assessment 15 reproductions
+API_INTERNAL_URL=http://127.0.0.1:4400 pnpm build && pnpm --filter @fincore/web test:e2e   # Playwright + axe
+```
+
+Demo users: `alice@`, `bob@`, `chandra@`, `support@`, `ops@`, `finance@`, `admin@fincore.test`. Password `FinCore-Demo-2026!`; SIMULATED TOTP secret `JBSWY3DPEHPK3PXP`.
+
 ## Status
 
-| Phase | Scope                                                                                    | Status             |
-| ----- | ---------------------------------------------------------------------------------------- | ------------------ |
-| 0     | Plan, ERD, ADRs                                                                          | ✅ approved        |
-| 1     | Scaffold, tooling, Compose, CI, governance                                               | ✅ done            |
-| 2     | Ledger schema, invariants, migrations, seed (Assessment 03)                              | ✅ awaiting review |
-| 3+    | See [docs/PLAN.md §8](docs/PLAN.md#8-phase-map-the-briefs-section-12-with-exit-evidence) | ⏳                 |
+All 15 assessments are implemented and tested locally. Docker, GitHub and the VM steps are prepared but not yet executed; see [docs/LIMITATIONS.md](docs/LIMITATIONS.md#environment-gaps-honest-status).
