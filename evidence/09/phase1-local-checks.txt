@@ -1,0 +1,219 @@
+# Phase 1 local verification: 2026-11-27T08:23:23Z
+# node v22.23.3, pnpm 10.34.9, uv 0.11.2 (02036a8ba 2026-03-26 x86_64-pc-windows-msvc), Windows 11 (Docker not installed: compose verified in CI)
+
+## pnpm format:check
+
+> fincore@ format:check C:\Users\hp\Desktop\FineCore
+> prettier --check .
+
+Checking formatting...
+All matched files use Prettier code style!
+
+## turbo lint typecheck test build (--force, no cache)
+   • turbo 2.11.13
+   • Packages in scope: @fincore/api, @fincore/contracts, @fincore/web, @fincore/workers
+   • Running lint, typecheck, test, build in 4 packages
+   • Remote caching disabled
+@fincore/contracts:typecheck: cache bypass, force executing e57010b7eb99ae6e
+@fincore/workers:test: cache bypass, force executing c2caa3dc0d798b72
+@fincore/workers:build: cache bypass, force executing 91af7eae45a8eb40
+@fincore/contracts:test: cache bypass, force executing 6ef69469b1632c13
+@fincore/contracts:build: cache bypass, force executing 2b47077690404667
+@fincore/workers:lint: cache bypass, force executing 5a832516c9369512
+@fincore/contracts:lint: cache bypass, force executing 7d044c6de4eb7611
+@fincore/workers:typecheck: cache bypass, force executing ccacfb6249b39f4c
+@fincore/contracts:typecheck: 
+@fincore/contracts:typecheck: > @fincore/contracts@0.1.0 typecheck C:\Users\hp\Desktop\FineCore\packages\contracts
+@fincore/contracts:typecheck: > tsc -p tsconfig.json --noEmit
+@fincore/contracts:typecheck: 
+@fincore/workers:build: 
+@fincore/workers:build: > @fincore/workers@0.1.0 build C:\Users\hp\Desktop\FineCore\apps\workers
+@fincore/workers:build: > tsc -p tsconfig.build.json
+@fincore/workers:build: 
+@fincore/workers:test: 
+@fincore/workers:test: > @fincore/workers@0.1.0 test C:\Users\hp\Desktop\FineCore\apps\workers
+@fincore/workers:test: > vitest run
+@fincore/workers:test: 
+@fincore/contracts:build: 
+@fincore/contracts:build: > @fincore/contracts@0.1.0 build C:\Users\hp\Desktop\FineCore\packages\contracts
+@fincore/contracts:build: > tsc -p tsconfig.build.json
+@fincore/contracts:build: 
+@fincore/contracts:test: 
+@fincore/contracts:test: > @fincore/contracts@0.1.0 test C:\Users\hp\Desktop\FineCore\packages\contracts
+@fincore/contracts:test: > vitest run
+@fincore/contracts:test: 
+@fincore/workers:lint: 
+@fincore/workers:lint: > @fincore/workers@0.1.0 lint C:\Users\hp\Desktop\FineCore\apps\workers
+@fincore/workers:lint: > eslint src test
+@fincore/workers:lint: 
+@fincore/contracts:lint: 
+@fincore/contracts:lint: > @fincore/contracts@0.1.0 lint C:\Users\hp\Desktop\FineCore\packages\contracts
+@fincore/contracts:lint: > eslint src
+@fincore/contracts:lint: 
+@fincore/workers:typecheck: 
+@fincore/workers:typecheck: > @fincore/workers@0.1.0 typecheck C:\Users\hp\Desktop\FineCore\apps\workers
+@fincore/workers:typecheck: > tsc -p tsconfig.json --noEmit
+@fincore/workers:typecheck: 
+@fincore/workers:test: 
+@fincore/workers:test:  RUN  v5.1.2 C:/Users/hp/Desktop/FineCore/apps/workers
+@fincore/workers:test: 
+@fincore/workers:test:  ✓ test/workers.test.ts (6 tests) 391ms
+@fincore/workers:test: 
+@fincore/workers:test:  Test Files  1 passed (1)
+@fincore/workers:test:       Tests  6 passed (6)
+@fincore/workers:test:    Start at  13:53:45
+@fincore/workers:test:    Duration  3.40s (tests 57%, import 29%, transform 9%, worker 4%, environment 1%)
+@fincore/workers:test: 
+@fincore/contracts:test: 
+@fincore/contracts:test:  RUN  v5.1.2 C:/Users/hp/Desktop/FineCore/packages/contracts
+@fincore/contracts:test: 
+@fincore/contracts:test:  ✓ test/errors.test.ts (3 tests) 67ms
+@fincore/contracts:test: 
+@fincore/contracts:test:  Test Files  1 passed (1)
+@fincore/contracts:test:       Tests  3 passed (3)
+@fincore/contracts:test:    Start at  13:53:49
+@fincore/contracts:test:    Duration  3.08s (import 86%, transform 6%, tests 6%, worker 2%)
+@fincore/contracts:test: 
+@fincore/api:build: cache bypass, force executing c54c241d6b612ed1
+@fincore/web:test: cache bypass, force executing 571efcfccc8c5218
+@fincore/web:build: cache bypass, force executing a4fa1de545937801
+@fincore/api:lint: cache bypass, force executing dea5b8c2fb7f7384
+@fincore/api:typecheck: cache bypass, force executing d3e4648baf46ccc7
+@fincore/web:typecheck: cache bypass, force executing 70bd993ed72eb4cd
+@fincore/web:lint: cache bypass, force executing f22d34c8943a1ff9
+@fincore/api:build: 
+@fincore/api:build: > @fincore/api@0.1.0 build C:\Users\hp\Desktop\FineCore\apps\api
+@fincore/api:build: > tsc -p tsconfig.build.json
+@fincore/api:build: 
+@fincore/web:test: 
+@fincore/web:test: > @fincore/web@0.1.0 test C:\Users\hp\Desktop\FineCore\apps\web
+@fincore/web:test: > vitest run
+@fincore/web:test: 
+@fincore/api:test: cache bypass, force executing b6856d0587b0e17f
+@fincore/web:build: 
+@fincore/web:build: > @fincore/web@0.1.0 build C:\Users\hp\Desktop\FineCore\apps\web
+@fincore/web:build: > next build
+@fincore/web:build: 
+@fincore/api:lint: 
+@fincore/api:lint: > @fincore/api@0.1.0 lint C:\Users\hp\Desktop\FineCore\apps\api
+@fincore/api:lint: > eslint src test
+@fincore/api:lint: 
+@fincore/web:typecheck: 
+@fincore/web:typecheck: > @fincore/web@0.1.0 typecheck C:\Users\hp\Desktop\FineCore\apps\web
+@fincore/web:typecheck: > tsc --noEmit
+@fincore/web:typecheck: 
+@fincore/web:lint: 
+@fincore/web:lint: > @fincore/web@0.1.0 lint C:\Users\hp\Desktop\FineCore\apps\web
+@fincore/web:lint: > eslint .
+@fincore/web:lint: 
+@fincore/api:typecheck: 
+@fincore/api:typecheck: > @fincore/api@0.1.0 typecheck C:\Users\hp\Desktop\FineCore\apps\api
+@fincore/api:typecheck: > tsc -p tsconfig.json --noEmit
+@fincore/api:typecheck: 
+@fincore/api:test: 
+@fincore/api:test: > @fincore/api@0.1.0 test C:\Users\hp\Desktop\FineCore\apps\api
+@fincore/api:test: > vitest run --coverage
+@fincore/api:test: 
+@fincore/web:test: 
+@fincore/web:test:  RUN  v5.1.2 C:/Users/hp/Desktop/FineCore/apps/web
+@fincore/web:test: 
+@fincore/web:build: ▲ Next.js 16.4.6 (Turbopack)
+@fincore/web:build: ✓ Running next.config.ts took 509ms
+@fincore/api:test: 
+@fincore/api:test:  RUN  v5.1.2 C:/Users/hp/Desktop/FineCore/apps/api
+@fincore/api:test:       Coverage enabled with v8
+@fincore/api:test: 
+@fincore/api:test:  ✓ test/config.test.ts (3 tests) 122ms
+@fincore/web:build: 
+@fincore/web:build:   Creating an optimized production build ...
+@fincore/web:build: ✓ Compiled successfully in 7.1s
+@fincore/web:build:   Running TypeScript ...
+@fincore/api:test:  ✓ test/app.test.ts (14 tests) 3038ms
+@fincore/api:test:    ✓ health endpoints (6)
+@fincore/api:test:      ✓ GET /healthz returns ok without touching dependencies 423ms
+@fincore/api:test:      ✓ GET /readyz fails a check that hangs past the timeout 2030ms
+@fincore/api:test: 
+@fincore/api:test:  Test Files  2 passed (2)
+@fincore/api:test:       Tests  17 passed (17)
+@fincore/api:test:    Start at  13:54:08
+@fincore/api:test:    Duration  18.31s (import 74%, tests 20%, transform 3%, worker 3%)
+@fincore/api:test: 
+@fincore/api:test:  % Coverage report from v8
+@fincore/api:test: 
+@fincore/api:test: =============================== Coverage summary ===============================
+@fincore/api:test: Statements   : 97.05% ( 99/102 )
+@fincore/api:test: Branches     : 93.02% ( 40/43 )
+@fincore/api:test: Functions    : 93.33% ( 28/30 )
+@fincore/api:test: Lines        : 96.87% ( 93/96 )
+@fincore/api:test: ================================================================================
+@fincore/web:test:  ✓ src/components/simulated-banner.test.tsx (1 test) 314ms
+@fincore/web:test:    ✓ SimulatedBanner (1)
+@fincore/web:test:      ✓ announces that funds are simulated, as an accessible note 306ms
+@fincore/web:test: 
+@fincore/web:test:  Test Files  1 passed (1)
+@fincore/web:test:       Tests  1 passed (1)
+@fincore/web:test:    Start at  13:54:04
+@fincore/web:test:    Duration  22.46s (environment 87%, import 11%, tests 2%)
+@fincore/web:test: 
+@fincore/web:build:   Finished TypeScript in 12.2s ...
+@fincore/web:build:   Collecting page data using 5 workers ...
+@fincore/web:build:   Generating static pages using 5 workers (0/3) ...
+@fincore/web:lint: 
+@fincore/web:lint: C:\Users\hp\Desktop\FineCore\apps\web\eslint.config.mjs
+@fincore/web:lint:   4:1  warning  Assign array to a variable before exporting as module default  import/no-anonymous-default-export
+@fincore/web:lint: 
+@fincore/web:lint: C:\Users\hp\Desktop\FineCore\apps\web\postcss.config.mjs
+@fincore/web:lint:   1:1  warning  Assign object to a variable before exporting as module default  import/no-anonymous-default-export
+@fincore/web:lint: 
+@fincore/web:lint: ✖ 2 problems (0 errors, 2 warnings)
+@fincore/web:lint: 
+@fincore/web:build: ✓ Generating static pages using 5 workers (3/3) in 3.3s
+@fincore/web:build:   Finalizing page optimization ...
+@fincore/web:build: 
+@fincore/web:build: Route (app)
+@fincore/web:build: ┌ ○ /
+@fincore/web:build: ├ ○ /_not-found
+@fincore/web:build: └ ƒ /healthz
+@fincore/web:build: 
+@fincore/web:build: 
+@fincore/web:build: ○  (Static)   prerendered as static content
+@fincore/web:build: ƒ  (Dynamic)  server-rendered on demand
+@fincore/web:build: 
+ Tasks:    16 successful, 16 total
+Cached:    0 cached, 16 total
+  Time:    1m13.174s 
+
+## analytics: ruff, mypy, pytest
+All checks passed!
+8 files already formatted
+Success: no issues found in 8 source files
+============================= test session starts =============================
+platform win32 -- Python 3.13.5, pytest-9.2.0, pluggy-1.7.0
+rootdir: C:\Users\hp\Desktop\FineCore\services\analytics
+configfile: pyproject.toml
+testpaths: tests
+plugins: anyio-4.16.0, cov-7.1.0
+collected 14 items
+
+tests\test_app.py ............                                           [ 85%]
+tests\test_main.py ..                                                    [100%]
+
+============================== warnings summary ===============================
+.venv\Lib\site-packages\fastapi\testclient.py:1
+  C:\Users\hp\Desktop\FineCore\services\analytics\.venv\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=============================== tests coverage ================================
+_______________ coverage: platform win32, python 3.13.5-final-0 _______________
+
+Name                                Stmts   Miss  Cover
+-------------------------------------------------------
+src\fincore_analytics\__init__.py       0      0   100%
+src\fincore_analytics\app.py           70      0   100%
+src\fincore_analytics\config.py         7      0   100%
+src\fincore_analytics\logging.py        4      0   100%
+src\fincore_analytics\main.py           6      0   100%
+-------------------------------------------------------
+TOTAL                                  87      0   100%
+======================== 14 passed, 1 warning in 2.49s ========================
